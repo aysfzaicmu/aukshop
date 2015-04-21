@@ -1,0 +1,271 @@
+
+{% extends "auction/base2.html" %}
+{% block title %}Shopping Home{% endblock %}
+
+{% block links %}
+<!--Javascript (jQuery) Libraries and Plugins-->
+  <script src="../../static/auction/LIMOjs/libs/jquery-1.11.1.min.js"></script>
+  <script src="../../static/auction/LIMOjs/libs/jquery-ui-1.10.4.custom.min.js"></script>
+  <script src="../../static/auction/LIMOjs/libs/jquery.easing.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/bootstrap.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/smoothscroll.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/jquery.validate.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/icheck.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/jquery.placeholder.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/jquery.stellar.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/jquery.touchSwipe.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/jquery.shuffle.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/lightGallery.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/owl.carousel.min.js"></script>
+  <script src="../../static/auction/LIMOjs/plugins/masterslider.min.js"></script>
+  <script src="../../static/auction/mailer/mailer.js"></script>
+  <script src="../../static/auction/LIMOjs/scripts.js"></script>
+{% endblock %}
+
+{% block content-high %}
+
+<div class="page-content">
+
+
+   <!--Hero Slider-->
+   <section class="hero-slider">
+     <div class="master-slider" id="hero-slider">
+
+      <!--Slide 1-->
+      <div class="ms-slide" data-delay="7">
+        <div class="overlay"></div>
+        <img src="http://civicscience.com/wp-content/uploads/2015/01/iStock_000012554478Medium.jpg" data-src="http://civicscience.com/wp-content/uploads/2015/01/iStock_000012554478Medium.jpg"  alt=""/>
+      </div>
+
+      <!--Slide 2-->
+      <div class="ms-slide" data-delay="7">
+        <span class="overlay"></span>
+        <img src="http://www.mentorpl.org/wp-content/uploads/2014/11/Holiday-Shopping-online.jpg"data-src="http://www.mentorpl.org/wp-content/uploads/2014/11/Holiday-Shopping-online.jpg" alt="Necessaire"/>
+      </div>
+
+      <!--Slide 3-->
+      <div class="ms-slide" data-delay="7">
+        <div class="overlay"></div>
+        <img src="http://www.mentorpl.org/wp-content/uploads/2014/11/Holiday-Shopping-online.jpg" data-src="http://www.mentorpl.org/wp-content/uploads/2014/11/Holiday-Shopping-online.jpg" alt="Crescent"/>
+      </div>
+
+    </div>
+  </section><!--Hero Slider Close-->
+
+
+<br>
+
+<p class="message">
+  {{message}}
+</p>
+
+<!-- search bar
+-->
+<section>
+  <form action="{% url 'home' %}" method="post">
+
+    <div class="container">
+      <div class="col-md-6">
+        <div id="custom-search-input">
+          <div class="input-group col-md-12 col-md-offset-6">
+          
+              {{form.search}}
+           
+              <input type="submit" id="searchBar" style="float:right;"value="Search" class="btn btn-primary btn-sg"/>
+            
+        </div>
+      </div>
+    </div>
+
+    {% csrf_token %}
+  </form>
+</section>
+
+<br>
+<br>
+
+
+<!--Categories-->
+<section class="cat-tiles">
+  <div class="container">
+    <h2>Browse categories</h2>
+    <div class="row">
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Electronics'%}">
+          <img src="https://www.phoenixpawnandgold.com/wp-content/uploads/2015/02/electronics.jpg" style="width:200px;height:150px;" alt="1"/>
+          <p>Electronics</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Furniture' %}">
+          <img src="http://s.hswstatic.com/gif/furniture-restoration-300x300.jpg" style="width:200px;height:150px;" alt="1"/>
+          <p>Furniture</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Clothing' %}">
+          <img src="http://www.thefashionpolice.net/wp-content/uploads/2010/08/winter-clothing-essentials.jpg" style="width:200px;height:150px;" alt="1"/>
+          <p>Clothing</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Sports'%}">
+          <img src="http://www.stjosephschoolsylvania.org/sites/default/files/sports.jpg" style="width:200px;height:150px;" alt="1"/>
+          <p>Sports</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Kitchen'%}">
+          <img src="http://www.demilweb.com/wp-content/uploads/2014/08/140211-Kitchen-Appliances.jpg" style="width:200px;height:150px;" alt="1"/>
+          <p>Kitchen</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Books'%}">
+          <img src="http://1.bp.blogspot.com/-qJA7dW3W-M0/VH4l2LQUIEI/AAAAAAAAACo/ZJqeqHgpmBs/s1600/books.png" style="width:200px;height:150px;" alt="1"/>
+          <p>Books</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Games'%}">
+          <img src="http://cflantern.org/wp-content/uploads/2015/02/game-controller-155530_640.png" style="width:200px;height:150px;" alt="1"/>
+          <p>Games</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Toys'%}">
+          <img src="http://benchmark.us/wp-content/uploads/2013/12/best-selling-toys-on-amazon.com-for-christmas-2013.jpg" style="width:200px;height:150px;" alt="1"/>
+          <p>Toys</p>
+        </a>
+      </div>
+      <!--Category-->
+      <div class="category col-lg-2 col-md-2 col-sm-4 col-xs-6">
+        <a href="{% url 'show_category' 'Other'%}">
+          <img src="http://icons.iconarchive.com/icons/custom-icon-design/flatastic-4/512/Add-item-icon.png" style="width:200px;height:150px;" alt="1"/>
+          <p>Others</p>
+        </a>
+      </div>
+    </div>
+  </div>
+</section><!--Categories Close-->
+
+
+{% load mathfilters %}
+
+<!--Catalog Grid-->
+<section class="catalog-grid">
+  <div class="container">
+    {% if recentlyViewed %}
+    <h2 class="dark-color">Recently Viewed Items: </h2>
+    {% endif %}
+    <div class="row">
+
+      {% for viewedItem in recentlyViewed %}
+
+      {% with ITEM=viewedItem.item %}
+    <!--Tile-->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="tile">
+            {% if ITEM.price %}
+            <div class="price-label">Buy Now for ${{ITEM.price}}</div>
+            {% else %} 
+            <div class="price-label">Biddable!</div>
+            {% endif %}
+
+
+            <a href="#">
+              <img src="https://www.phoenixpawnandgold.com/wp-content/uploads/2015/02/electronics.jpg" alt="1"/>
+              <span class="tile-overlay"></span>
+            </a>
+
+            <div class="footer">
+              <a href=" {% url 'productInfo' viewedItem.item.id %}">{{ITEM.title}}</a>
+
+              {% if ITEM.endBidDate %} 
+                <p> Bid Ends at {{ITEM.endBidDate}}</p> 
+              {% else %}
+                <p> BuyItNow Item Only!</p> 
+              {% endif %}
+                <span>by {{ITEM.seller}}</span>
+            </div>
+
+
+        <!-- Ratings -->
+
+            <div class="ratings">
+              <p class="pull-right">{{ITEM.numReviews}} reviews</p>
+              <p class="stars">
+                {% with numerator=ITEM.sumStars denominator=ITEM.numStarRequests %}
+                {% if denominator != 0 %}
+                {% for i in numerator|intdiv:denominator|get_range %}
+                  <span class="glyphicon glyphicon-star"></span>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+              </p>
+            </div>
+
+<!--                   ratings end
+-->
+
+          </div>
+        </div>
+<!--TIle ends-->
+    {% endwith %}
+
+    {% endfor %}
+
+    </div>
+  </div>
+</section><!--Catalog Grid Close-->
+<hr>
+{% endblock %}
+
+{% block footer %}
+<!--Footer-->
+<footer class="footer">
+   <div class="container">
+     <div class="row">
+       <div class="col-lg-5 col-md-5 col-sm-5">
+         <div class="info">
+          <p>Describe the mission of your online store and the advantages a customer can get once he makes a purchase. If you have something to tell let customers know about it.</p>
+          
+     </div>
+ </div>
+<div class="contacts col-lg-3 col-md-3 col-sm-3">
+ <h2>Contacts</h2>
+ <p class="p-style3">
+   Carnegie Mellon University<br/>
+   Pittsburgh, PA<br/>
+   <a href="mailto:aukshop@gmail.com">aukshop@gmail.com</a><br/>
+</p>
+</div>
+</div>
+<div class="copyright">
+   <div class="row">
+     <div class="col-lg-7 col-md-7 col-sm-7">
+      <p>&copy; 2014 Aukshop. All Rights Reserved.</p>
+  </div>
+  <div class="col-lg-5 col-md-5 col-sm-5">
+   
+</div>
+</div>
+</div>
+</div>
+</footer><!--Footer Close-->
+{% endblock %}
+
+
+
+
+
+</body><!--Body Close-->
+</html>

@@ -1,0 +1,64 @@
+{% extends "auction/base1.html" %}
+
+
+
+{% block content-high %}
+
+   <div class="container">
+
+<div class="row">
+    <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
+
+
+    <form method="post" action="{% url 'register' %}">
+            <h2>Please Sign Up <small>It's free and always will be.</small></h2>
+            <hr class="colorgraph">
+            <div class="row">
+                <div class="col-xs-12 col-sm-6 col-md-6">
+                    <div class="form-group">
+                       
+                        <span  name="first_name" id="first_name" class="form-control input-lg" placeholder="Firs Name" tabindex="1">{{form.firstName.label_tag}}{{form.firstName}}</span>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6">
+                    <div class="form-group">
+                        
+                          <span  name="last" id="first_name" class="form-control input-lg" placeholder="Last Name" tabindex="1">{{form.lastName.label_tag}}{{form.lastName}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+              
+                 <span  name="username" id="username" class="form-control input-lg" placeholder=" username" tabindex="1">{{form.username.label_tag}}{{form.username}}</span>
+            </div>
+            <div class="form-group">
+              
+                 <span type="email" name="email" id="email" class="form-control input-lg" placeholder="Email Address" tabindex="4">{{form.email.label_tag}}{{form.email}}</span>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-6 col-md-6">
+                    <div class="form-group">
+                      
+                        <span type="password" name="password1" id="password1" class="form-control input-lg" placeholder="Password1" tabindex="4">{{form.password1.label_tag}}{{form.password1}}</span>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-6 col-md-6">
+                    <div class="form-group">
+                        <span type="password" name="password2" id="password2" class="form-control input-lg" placeholder="Password1" tabindex="6">{{form.password2.label_tag}}{{form.password2}}</span>
+                    </div>
+                </div>
+            </div>
+           
+            
+            <hr class="colorgraph">
+            <div class="row">
+                <div class="col-xs-12 col-md-6"><input type="submit" value="Register" class="btn btn-primary btn-block btn-lg" tabindex="7"></div>
+            </div>
+            {% csrf_token %}
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+    

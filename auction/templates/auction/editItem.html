@@ -1,0 +1,20 @@
+{% extends "auction/base2.html" %}
+{% block title%}Edit Item{% endblock %}
+
+{% block content-high %}
+<form action="" method="POST">
+	<table>
+		<table>
+        	<tr><th>{{form.title.label_tag}}</th><td>{{form.title}}</td></tr>
+            <tr><th>{{form.description.label_tag}}</th><td>{{form.description}}</td></tr>
+            <tr><th>{{form.category.label_tag}}</th><td>{{form.category}}</td></tr>
+            <tr><th>{{form.picture.label_tag}}</th><td>{{form.picture}}</td></tr>
+          	<tr><th>{{form.price.label_tag}}</th><td>{{form.price}}</td></tr>
+            {% if bid == 'False' %}<tr><th>{{form.bidPrice.label_tag}}</th><td>{{form.bidPrice}}</td></tr> {% endif %}
+            <tr><th>{{form.endBidDate.label_tag}}</th><td>{{form.endBidDate}}</td></tr>
+            <tr><th>{{form.sellingChoice.label_tag}}</th><td>{{form.sellingChoice}}</td></tr>
+	</table>
+	{% csrf_token %}
+	<button class="btn btn-primary btn-sg"> Submit</button>
+</form>
+{% endblock %}

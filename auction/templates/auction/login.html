@@ -1,0 +1,55 @@
+{% extends "auction/base1.html" %}
+{% block title %}Login Page{% endblock %}
+
+{% block content-high %}
+<div class="container">    
+    <div id="loginbox" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">                    
+            <div class="panel-heading">
+                <h1>Sign In</h1>
+                <div id="login"><a href="{% url 'forgotPassword' %}">Forgot password?</a></div>
+                <div id="login"><a href="{% url 'forgotUsername' %}">Forgot username?</a></div>
+            </div>     
+
+            <div id="newPassword" class="panel-body" >
+
+                <div id="login-alert" class="alert alert-danger col-sm-12"></div>
+
+                <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
+
+                    <table>
+                        {{form}}
+                    </table>
+<!-- 
+                    <div id="bottom" class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+
+                        <span type="text" class="form-control" name="username" value="" placeholder="username or email">{{form.username}}</span>                                        
+                    </div>
+
+                    <div id="bottom" class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                        <span type="text" class="form-control" name="password" value="" placeholder="password">{{form.password}}</span>
+
+                    </div> -->
+
+                    <br>
+
+                
+                            <button type = "submit" class="btn btn-primary btn-sg">Sign In</button>
+
+                            <div>
+                                Don't have an account! 
+                                <a href="{% url 'register' %}" onClick="$('#loginbox').hide(); $('#signupbox').show()">
+                                    Sign Up Here
+                                </a>
+                            </div>
+                    {% csrf_token %}
+
+                </form>     
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

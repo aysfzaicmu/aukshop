@@ -1,0 +1,30 @@
+{% extends "auction/base2.html" %}
+{% block title %}Category Page{% endblock %}
+
+{% block content-high %}
+{% if not items %}
+<p class="message"> 
+  No items within this category
+</p>
+{% endif %}
+<div class="container">
+ <section>
+ <form action="{% url 'show_category' id %}" method="post">
+
+     <div class="col-md-6">
+        <div id="custom-search-input">
+            <div class="input-group col-md-12 col-md-offset-6">
+               {{form.search}}
+               <input type="submit" id="searchBar" value="Search" class="btn btn-primary btn-sg"/>
+            </div>
+        </div>
+    </div>
+
+
+    {% csrf_token %}
+
+</form>
+</section>
+</div>
+
+{% endblock %}

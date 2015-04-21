@@ -1,0 +1,139 @@
+{% extends "auction/base.html" %}
+
+{% block title %}{{item.title}} Info{% endblock %}
+
+{% block content-high %}
+<script src="../../static/auction/js/jquery-2.1.3.min.js" type="text/javascript"></script>
+{% if item.bidPrice %} <script src="../../static/auction/js/auction_product.js" type="text/javascript"></script> {% endif %}
+<script src="../../static/auction/js/ratings.js" type="text/javascript"></script>
+<script src='https://platform.venmo.com/sdk.js'></script>
+{% load mathfilters %}
+<p id="error" class="message">
+</p>
+
+<input type="hidden" id="itemid" value="{{item.id}}">
+
+
+<div class="container">
+
+
+<hc>
+<br>
+<div class="row">
+
+    <div class="col-md-9">
+
+        <div class="thumbnail">
+            <img class="img-responsive" src="{{item.picture_url}}" alt="">
+            <div class="caption-full">
+
+                <h2>{{item.title}}</h2>
+                <h4> {{item.description}}</h4>
+
+                <p>
+                     <a href="{% url 'sendEmail' sellerId=item.seller.id itemTitle=item.title %}">Contact Seller</a>
+                </p>
+
+               
+ 
+                <br>
+
+                <br>
+
+                
+                
+
+                <br>
+
+
+                <br>
+
+                {% if item.bidPrice %}
+                <div id="bidValue">
+                   <a href = "{% url 'submitBid' item.id %}" class="btn btn-primary btn-sg">Bid Starting At ${{item.bidPrice|floatformat:2}}</a> 
+               </div>
+
+               {% endif %}
+               {% if item.price %}
+                <div id="buynowprice">
+                   <a href = "{% url 'paywithPayPal' item.id 'buy' %}" class="btn btn-primary btn-sg">Buy Now for ${{item.price|floatformat:2}}</a> 
+               </div>
+               {% endif %}
+
+
+           </div>
+           <div class="ratings">
+            <p class="pull-right">{{comments|length}} reviews</p>
+            <p id="rating">
+                {% with numerator=item.sumStars denominator=item.numStarRequests %}
+                {% if denominator != 0 %}
+                {% for i in numerator|intdiv:denominator|get_range %}
+                   <span class="glyphicon glyphicon-star"></span>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                {% for i in notStars|get_range %}
+                    <span class="glyphicon glyphicon-star-empty"></span>
+                {% endfor %}
+                {% with numerator=item.sumStars denominator=item.numStarRequests %}
+                {% if denominator != 0 %}
+                {{numerator|div:denominator|floatformat:2}} stars
+                {% else %}
+                0 stars
+                {% endif %}
+                {% endwith %}
+            </p>
+        </div>
+    </div>
+    <span class="r">
+        Click Here to Rate:
+        <div class="rating">    
+            <button class="star" onClick="rate(5, {{item.id}})">☆</button><button class="star" onClick="rate(4, {{item.id}})">☆</button><button class="star" onClick="rate(3, {{item.id}})">☆</button><button class="star" onClick="rate(2, {{item.id}})">☆</button><button class="star" onClick="rate(1, {{item.id}})">☆</button>
+        </div>
+    </span>
+</br>
+</br>
+    
+
+    <div class="well">
+        <form action="{% url 'productInfo' item.id %}" method="POST">
+            <table>
+                <tr>
+                    <td>
+                        {{form.review}}
+                    </td>
+
+                    <td>
+                        <input type="submit" value="Make Review" class="btn btn-primary btn-sg"/>
+                    </td>
+                </tr>
+            </table>
+            {% csrf_token %}
+        </form>
+
+        <hr>
+        {% for comment in comments %}
+        <div class="row">
+            <div class="col-md-12">
+                <a href="{% url 'profile' comment.commenter.id %}">{{comment.commenter}}</a>
+                <span class="pull-right">{{comment.date}}</span>
+                <p>{{comment.text}}</p>
+            </div>
+        </div>
+
+        <hr>
+        {% endfor %}
+
+
+
+    </div>
+
+</div>
+
+</div>
+
+
+
+
+</div>
+{% endblock %}

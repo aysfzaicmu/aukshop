@@ -1,0 +1,126 @@
+{% extends "auction/base2.html" %}
+
+{% block title %}Shop Homepage - Welcome to Aukshop{% endblock %}
+
+{% block content-high %}
+<p class="message">
+    {{message}}
+</p>
+
+
+   <form action="{% url 'home' %}" method="post">
+
+
+     <div class="col-md-6">
+        <div id="custom-search-input">
+            <div class="input-group col-md-12 col-md-offset-6">
+                {{form.search}}
+                <span class="input-group-btn">
+                    <button class="btn btn-info btn-lg" type="submit">
+                        <i class="glyphicon glyphicon-search"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+
+
+    {% csrf_token %}
+</form>
+</div>
+</br>
+</br>
+</br>
+
+{% load mathfilters %}
+<!-- Page Content -->
+<div class="container">
+
+    <div class="row">
+
+
+                    <div id="carousel-example-generic" class="carousel slide" style="width: 1000px; height: 300px; margin: 0 auto" data-ride="carousel">
+                        <ol class="carousel-indicators">
+                            <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+                            <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+                            <li data-target="#carousel-example-generic" data-slide-to="2"></li>
+                        </ol>
+                        <div class="carousel-inner">
+                            <div class="item active">
+                                <img class="slide-image" src="http://civicscience.com/wp-content/uploads/2015/01/iStock_000012554478Medium.jpg" style="width:1171px;height:300px;"alt="">
+                            </div>
+                            <div class="item">
+                                <img class="slide-image" src="http://www.mentorpl.org/wp-content/uploads/2014/11/Holiday-Shopping-online.jpg" style="width:1171px;height:300px;" alt="">
+                            </div>
+                            <div class="item">
+                                <img class="slide-image" src="http://i.huffpost.com/gen/793571/thumbs/o-CLOTHING-COLOUR-facebook.jpg" style="width:1171px;height:300px;" alt="">
+                            </div>
+                        </div>
+                        <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                            <span class="glyphicon glyphicon-chevron-left"></span>
+                        </a>
+                        <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                            <span class="glyphicon glyphicon-chevron-right"></span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="container">
+            <h2> Recently Viewed Items: </h2>
+
+
+                {% for viewedItem in recentlyViewed %}
+                <div class="col-sm-4 col-lg-4 col-md-4">
+                    <div class="thumbnail">
+                        <img src="http://placehold.it/320x150" alt="">
+                        <div class="caption">
+<!--                                 <h4 class="pull-right">Buy Now for ${{item.price}}</h4>
+-->                                <h4><a href=" {% url 'productInfo' viewedItem.item.id %}">{{viewedItem.item.title}}</a>
+</h4>
+{% if viewedItem.item.endBidDate %} <p> Bid Ends at {{viewedItem.item.endBidDate}}</p> {% endif %}
+<!--                                 <p> Bid Starting At ${{item.bidPrice}}</p>
+-->                                
+</div>
+<!-- {% if viewedItem.item.price %} <a href = "#" class="btn btn-primary btn-sg">Buy Now for ${{viewedItem.item.price}}</a> {% endif %} -->
+</br>
+<!-- {% if viewedItem.item.bidPrice %} <a href = "{% url 'submitBid' viewedItem.item.id %}" class="btn btn-primary btn-sg">Bid Starting At ${{viewedItem.item.bidPrice}}</a> {% endif %} -->
+
+</br>
+<div class="ratings">
+    <p class="pull-right">{{viewedItem.item.numReviews}} reviews</p>
+    <p>
+        {% with numerator=viewedItem.item.sumStars denominator=viewedItem.item.numStarRequests %}
+        {% if denominator != 0 %}
+        {% for i in numerator|intdiv:denominator|get_range %}
+            <span class="glyphicon glyphicon-star"></span>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </p>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+<h2> Other Items </h2>
+
+
+</div>
+
+</div>
+
+</div>
+<!-- /.container -->
+
+<!-- jQuery -->
+<script src="../../static/auction/js/jquery.js"></script>
+    </div>
+           <a href="https://connect.stripe.com/oauth/authorize?response_type=code&amp;client_id=ca_5zdI88hiyw23dfEoLYf3qsYTz86aoZSj&amp;scope=read_write" class="stripe-connect"><span>Connect with Stripe</span></a>
+    <!-- /.container -->
+    <!-- jQuery -->
+    <script src="js/jquery.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="../../static/auction/js/bootstrap.min.js"></script>
+{% endblock %}

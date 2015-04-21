@@ -1,0 +1,38 @@
+{% extends 'auction/base2.html' %}
+
+{% block title %}Send Email{% endblock %}
+
+{% block content-high %}
+<!-- <form action="" method="post">
+    <h1 style = "position:absolute;transition: .5s ease;left: 45%;top: 15%;">Send Email</h1>
+
+    <div class="container" style = "position:absolute;transition: .5s ease;left: 40%;top: 30%;">
+    <div style="margin-bottom: 25px" class="input-group">
+
+                        {{form.subject}}                                        
+                    </div>
+
+                    <div style="margin-bottom: 25px" class="input-group">
+                        {{form.body}}
+
+                    </div>
+                </div>
+    {% csrf_token %}
+    <input type="submit" class="btn btn-primary btn-sg" style = "position:absolute;transition: .5s ease;left: 702px;top: 575px;" value="Send Email"/>
+    <input type="hidden" value="{{sellerId}}" name="sellerId"/>
+    <input type="hidden" value="{{itemTitle}}" name="itemTitle"/>
+</form> -->
+<form action="" method="post">
+    <div class="container">
+        <h1>Contact Seller</h1>
+    {{form}}
+    {% csrf_token %}
+    <br>
+    <input type="submit" class="btn btn-primary btn-sg" value="Send Email"/>
+    <input type="hidden" value="{{sellerId}}" name="sellerId"/>
+    <input type="hidden" value="{{itemTitle}}" name="itemTitle"/>
+    </div>
+
+</form>
+
+{% endblock %}

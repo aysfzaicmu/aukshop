@@ -1,0 +1,54 @@
+{% extends "auction/base3.html" %}
+{% block title %}{{userProfile}}'s Profile Page{% endblock %}
+
+{% block content-high%}
+</br>
+
+<div class="container">
+
+  <div class="row">
+
+
+
+   <div class="col-md-3">
+    <p class="lead">Manage Acccount</p>
+    <div class="list-group">
+      <a href="{% url 'sellerHistory' %}" class="list-group-item">Recently Sold Products</a>
+            <a href="{% url 'buyerHistory' %}" class="list-group-item">Recently Bought Products</a>
+            <a href="{% url 'add_item' %}" class="list-group-item">Want to Sell Something?</a>
+            <a href="{% url 'inventory' %}" class="list-group-item">Inventory</a>
+    </div>
+  </div>
+
+  
+  <div class="col-md-6">
+
+
+  <h3 class="panel-title" style="text-align:center;">{{userProfile}}'s Profile</h3>
+  <br>
+  <br>
+  <table class="table table-user-information">
+    <tbody>
+      <tr>
+        <td>First Name:</td>
+        <td>{{user.first_name}}</td>
+      </tr>
+      <tr>
+        <td>Last Name:</td>
+        <td>{{user.last_name}}</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+        <td><a href="mailto:{{user.email}}">{{user.email}}</a></td>
+      </tbody>
+
+
+    </table>
+
+
+  </div>
+</div>
+</div>
+
+</div>
+{% endblock %}

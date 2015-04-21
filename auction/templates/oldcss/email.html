@@ -1,0 +1,14 @@
+{% extends 'auction/base2.html' %}
+
+{% block title %}Send Email{% endblock %}
+
+{% block content-high %}
+<form action="" method="post">
+	{{form}}
+	{% csrf_token %}
+    <input type="submit" class="btn btn-primary btn-sg" value="Send Email"/>
+    <input type="hidden" value="{{sellerId}}" name="sellerId"/>
+    <input type="hidden" value="{{itemTitle}}" name="itemTitle"/>
+</form>
+
+{% endblock %}

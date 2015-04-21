@@ -1,0 +1,68 @@
+{% extends "auction/base3.html" %}
+{% block title %}{{userProfile}}'s Profile Page{% endblock %}
+
+{% block content-high%}
+
+
+<div class="container">
+      <div class="row">
+
+      
+        <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xs-offset-0 col-sm-offset-0 col-md-offset-3 col-lg-offset-3 toppad" >
+   
+   
+          <div class="panel panel-info">
+            <div class="panel-heading">
+              <h3 class="panel-title">{{userProfile}}</h3>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-md-9 col-lg-9"> 
+                  <table class="table table-user-information">
+                    <tbody>
+                      <tr>
+                        <td>First Name:</td>
+                        <td>{{user.first_name}}</td>
+                      </tr>
+                      <tr>
+                        <td>Last Name:</td>
+                        <td>{{user.last_name}}</td>
+                      </tr>
+                      <tr>
+                        <td>Email</td>
+                        <td><a href="mailto:{{user.email}}">{{user.email}}</a></td>
+                    </tbody>
+
+
+                  </table>
+
+             
+
+
+                </div>
+              </div>
+            </div>
+                 
+            
+          </div>
+        </div>
+            <div class="col-md-3">
+                <div class="list-group">
+    {% if buttons == 'True' %}
+    <div class="column">
+        <a href="{% url 'sellerHistory' %}" class="btn btn-primary">View Recently Sold Products</a>
+        <a href="{% url 'buyerHistory' %}" class="btn btn-primary">View Recently Bought Products</a>
+        <a href="{% url 'add_item' %}" class="btn btn-primary">Want to Sell Something?</a>
+        <a href="{% url 'inventory' %}" class="btn btn-primary">View Inventory</a>
+    </div>
+    {% endif %}
+
+                </div>
+            </div>
+      </div>
+    </div>
+         
+{% endblock %}
+
+</body>
+</html>

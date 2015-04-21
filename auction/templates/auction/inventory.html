@@ -1,0 +1,23 @@
+{% extends "auction/base.html" %}
+{% block title%}Inventory{% endblock %}
+
+{% block content-high %}
+	<table class="table table-striped table-bordered">
+		<tr> 
+			<td> Item </td>
+			<td> Seller </td>
+			<td> Buy it Now Price </td>
+			<td> Bid Price </td>
+			<td> Edit </td>
+		</tr>
+	{% for item in items %}
+		<tr>
+			<td> {{item.title}} </td>
+			<td> {{item.seller}} </td>
+			<td> {% if item.sellingChoice == 'BUY' or item.sellingChoice == 'BIDBUY' %} ${{item.price|floatformat:2}} {% endif %}</td>
+			<td> {% if item.bidPrice %} ${{item.bidPrice|floatformat:2}} {% endif %}</td>
+			<td> <a href="{% url 'editItem' item.id %}"> Edit </a> </td>
+		</tr>
+	{% endfor %}
+	</table>
+{% endblock %}
