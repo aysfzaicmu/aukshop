@@ -2,13 +2,12 @@ import ConfigParser
 import boto
 import io
 from boto.s3.key import Key
+import os
 
-config = ConfigParser.ConfigParser()
-config.read("config.ini")
 
-AWS_ACCESS_KEY = config.get('S3', 'AccessKey')
-AWS_SECRET_ACCESS_KEY = config.get('S3', 'SecretKey')
-S3_BUCKET = config.get('S3', 'Bucket')
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+S3_BUCKET = os.environ.get('AWS_BUCKET')
 
 
 def s3_upload(uploaded_file, id):

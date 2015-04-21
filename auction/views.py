@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
 from django.core.mail import send_mail
 from django.http import Http404
-
+import os
 import json
 # Django transaction system so we can use @transaction.atomic
 from django.db import transaction
@@ -521,8 +521,8 @@ def paywithPayPal(request,id,sellingchoice):
 
     paypalrestsdk.configure({
   "mode": "sandbox", # sandbox or live
-  "client_id": "AcAjaPWCloDweweXvU36CqUWwmnPI2jhgc65OzXBONcEvdnVgCcF53WDpnmPqoTQJRIMjV1ntmRJKkOX",
-  "client_secret": "EFRB-HkWm9rk7BgyAsErwBL0EgO81rxipgYR8Zu0UBtS1u-glXq0IpC392DXMHcmr0uuzEClTyzMWNpM" })
+  "client_id": os.environ.get('PAYPAL_CLIENT_ID'),
+  "client_secret": os.environ.get('PAYPAL_SECRET_KEY')})
 
     payment = paypalrestsdk.Payment({
   "intent": "sale",

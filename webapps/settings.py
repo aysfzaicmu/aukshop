@@ -90,10 +90,10 @@ USE_TZ = True
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
-EMAIL_HOST = config.get('Email', 'Host')
-EMAIL_PORT = config.get('Email', 'Port')
-EMAIL_HOST_USER = config.get('Email', 'User')
-EMAIL_HOST_PASSWORD = config.get('Email', 'Password')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 EMAIL_USE_SSL = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
