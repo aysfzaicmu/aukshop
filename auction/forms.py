@@ -88,29 +88,29 @@ class RegistrationForm(forms.Form):
 		# 	raise forms.ValidationError('State too long')
 		# if zipcode is None or zipcode < 99999 or zipcode > 10000:
 		# 	raise forms.ValidationError('Invalid zipcode')
-		address = cleaned_data.get('address')
-		city = cleaned_data.get('city')
-		state = cleaned_data.get('state')
-		zipcode = cleaned_data.get('zipcode')
-		if address is None or len(address) > 40:
-			raise forms.ValidationError('Address too long')
-		index = address.index(' ')
-		if index == -1:
-			raise forms.ValidationError('Incorrect address format')
-		intPart = address[0::index]
-		try:
-			intPart = int(intPart)
-		except:
-			raise forms.ValidationError('Invalid address format')
-		spaces = address.count(' ')
-		if spaces != 3:
-			raise forms.ValidationError('Incorrect address format')
-		if city is None or len(city) > 40 or any(char.isdigit() for char in city):
-			raise forms.ValidationError('City too long')
-		if state is None or len(state) > 2:
-			raise forms.ValidationError('State too long')
-		if zipcode is None:
-			raise forms.ValidationError('Invalid zipcode')
+		# address = cleaned_data.get('address')
+		# city = cleaned_data.get('city')
+		# state = cleaned_data.get('state')
+		# zipcode = cleaned_data.get('zipcode')
+		# if address is None or len(address) > 40:
+		# 	raise forms.ValidationError('Address too long')
+		# index = address.index(' ')
+		# if index == -1:
+		# 	raise forms.ValidationError('Incorrect address format')
+		# intPart = address[0::index]
+		# try:
+		# 	intPart = int(intPart)
+		# except:
+		# 	raise forms.ValidationError('Invalid address format')
+		# spaces = address.count(' ')
+		# if spaces != 3:
+		# 	raise forms.ValidationError('Incorrect address format')
+		# if city is None or len(city) > 40 or any(char.isdigit() for char in city):
+		# 	raise forms.ValidationError('City too long')
+		# if state is None or len(state) > 2:
+		# 	raise forms.ValidationError('State too long')
+		# if zipcode is None:
+		# 	raise forms.ValidationError('Invalid zipcode')
 		# We must return the cleaned data we got from our parent.
 		return cleaned_data
 
