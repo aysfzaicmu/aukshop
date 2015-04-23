@@ -97,7 +97,7 @@
                     <p class="stars">
                       {% with numerator=item.sumStars denominator=item.numStarRequests %}
                       {% if denominator != 0 %}
-                      {% for i in numerator|intdiv:denominator|get_range %}
+                      {% for i in numerator|intdiv:denominator|absolute %}
                         <span class="glyphicon glyphicon-star"></span>
                       {% endfor %}
                       {% endif %}
