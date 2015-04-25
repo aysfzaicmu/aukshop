@@ -47,9 +47,6 @@ messageDict = {'0' : 'You won a bid on an item',
 config = ConfigParser.ConfigParser()
 config.read("config.ini")
 
-CLIENT_ID = config.get('Paypal', 'clientId')
-CLIENT_SECRET = config.get('Paypal', 'clientSecret')
-
 #Loads the homepage
 @login_required
 def home(request):
