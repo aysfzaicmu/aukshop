@@ -1,5 +1,12 @@
-{% extends "auction/base1.html" %}
+{% extends "auction/notLoggedInNavbar.html" %}
+
 {% block title %}Forgot Username{% endblock %}
+
+{% block css %}
+    {% load static %}
+    <link href="{% static 'auction/css/shop-homepage.css' %}" rel="stylesheet">
+    <link href="{% static 'auction/css/boxes.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content-high %}
 
@@ -8,7 +15,7 @@
         <div class="panel panel-info" >
             <div class="panel-heading">
                 <div class="panel-title">Forgot Username</div>
-                <div id="login"><a href="{% url 'login' %}"> Login </a> </div>
+                <div id="login"><a href="{% url 'login' %}" id="text"> Login </a> </div>
             </div>     
 
             <div id="newPassword" class="panel-body" >

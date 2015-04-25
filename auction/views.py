@@ -14,11 +14,12 @@ from django.contrib.auth import login, authenticate
 from django.core.mail import send_mail
 from django.http import Http404
 import os
+
 import json
 # Django transaction system so we can use @transaction.atomic
 from django.db import transaction
 import datetime
-from datetime import date
+from datetime import date, timedelta
 
 from auction.models import *
 from auction.forms import *
@@ -31,6 +32,8 @@ from auction.s3 import s3_upload, s3_delete
 import paypalrestsdk
 import logging
 from paypalrestsdk import Payout, ResourceNotFound
+import random
+import ConfigParser
 
 
 messageDict = {'0' : 'You won a bid on an item',
@@ -41,44 +44,39 @@ messageDict = {'0' : 'You won a bid on an item',
                 '5' : 'Your payment was unsuccesful. Please try again or contact our Customer Service'
               }
 
+config = ConfigParser.ConfigParser()
+config.read("config.ini")
+
+CLIENT_ID = config.get('Paypal', 'clientId')
+CLIENT_SECRET = config.get('Paypal', 'clientSecret')
+
 #Loads the homepage
 @login_required
 def home(request):
-    if request.method == 'GET':
-        scope = request.GET.get('scope', '')
-        code = request.GET.get('code', '')
-        if scope != '' and code != '':
-            return authentication(request, scope, code)
-
     context = {}
-    stripe.api_key = 'sk_test_BQokikJOvBiI2HlWgH4olfQ2'
-    #print(stripe.Account.retrieve('acct_15ne1rIzA8r8Audf'))
-    #print(stripe.Account.retrieve('acct_15nzVjIUICJ4BUZz'))
 
     if request.method == 'GET':
         context['form'] = SearchForm()
+        #check for bids
         loggedInWon = bidCheck(request)
         if loggedInWon:
+            #update messsage
             context['message'] = messageDict['0']
+            context['good_message'] = True
     user = request.user
     allItems = Item.objects.filter(isSold=False).exclude(seller=user)
-    userProfile = UserProfile.objects.get(user=user)
-    #print('Stripe Id:  ' + userProfile.stripeId)
+    try:
+        userProfile = UserProfile.objects.get(user=user)
+    except:
+        return render(request, 'auction/error.html', {"error": "Malicious HTTP request"})
     recentlyViewed = getRecentlyViewed(userProfile)
-    #print('Recently Viewed:')
-    #print(recentlyViewed)
     context['recentlyViewed'] = recentlyViewed
     subsetOfAllItems = []
 
-    #print('All stripe charges: ')
-    stripe.api_key = 'sk_test_BQokikJOvBiI2HlWgH4olfQ2'
-    #print(stripe.Charge.all())
-    #print(stripe.Account.all())
     for item in allItems:
         isSeen = False
         for rItem in recentlyViewed:
             if rItem.item.id == item.id:
-                print "found same"
                 isSeen = True
                 break
         if not isSeen:
@@ -86,8 +84,10 @@ def home(request):
     context['items'] = subsetOfAllItems
     if request.method == 'GET':
         messageId = request.GET.get('message', '')
-        if messageId != '':
-            context['message'] = messageDict[str(messageId)]
+        if messageId in messageDict:
+            context['message'] = messageDict[messageId]
+            if messageId == '5':
+                context['bad_message'] = True
         return render(request, 'auction/shoppingHome.html', context)
 
     form = SearchForm(request.POST)
@@ -99,13 +99,10 @@ def home(request):
     context = search(context, form, user, subsetOfAllItems)
     return render(request, 'auction/searchResults.html', context)
 
-
-#Loads a user's profile
 @login_required
-def show_category(request, id):
+def showCategory(request, id):
     context = {}
-    items = Item.objects.filter(isSold=False).exclude(seller= request.user)
-    items = items.filter(category = id)
+    items = Item.objects.filter(isSold=False).filter(category=id).exclude(seller= request.user)
 
     context['items'] = items
     context['form'] = SearchForm()
@@ -125,17 +122,27 @@ def show_category(request, id):
 @login_required
 def profile(request, id):
     user = get_object_or_404(User, id__exact = id)
-
-    userProfile = UserProfile.objects.get(user = user)
+    try:
+        userProfile = UserProfile.objects.get(user = user)
+    except:
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
     context = {}
     context['userProfile'] = userProfile
-    items = Item.objects.filter(isSold=False).filter(seller=user)
-    context['items'] = items
     loggedInUser = request.user
     if loggedInUser == user:
         context['buttons'] = 'True'
     else:
         context['buttons'] = 'False'
+        items = Item.objects.filter(isSold=False).filter(seller=user)
+        context['items'] = items
+    data = Item.objects.filter(isSold=True).filter(seller=user)
+    #calcualte how many items this user has sold in 7 day intervals
+    values = []
+    values.append(data.filter(boughtDate__lt = date.today()).filter(boughtDate__gte = date.today() - timedelta(days=7)).count())
+    values.append(data.filter(boughtDate__lt = date.today() - timedelta(days=7)).filter(boughtDate__gte = date.today() - timedelta(days=14)).count())
+    values.append(data.filter(boughtDate__lt = date.today() - timedelta(days=14)).filter(boughtDate__gte = date.today() - timedelta(days=21)).count())
+    values.append(data.filter(boughtDate__lt = date.today() - timedelta(days=21)).filter(boughtDate__gte = date.today() - timedelta(days=28)).count())
+    context['values'] = values
     return render(request, 'auction/profile.html', context)
 
 #Loads the product page
@@ -149,12 +156,15 @@ def productInfo(request, id):
         return render(request, 'auction/error.html', context)
     context['item'] = item
     user = request.user
-    #How to call the equals defined in models
     if item.seller == user:
         return render(request, 'auction/error.html', \
         {'error': 'Trying to buy a product that you are selling. if you would like to' + \
         ' view the product go to your profile and click on the View Inventory button'})
-    userProfile = UserProfile.objects.get(user=user)
+    try:
+        userProfile = UserProfile.objects.get(user=user)
+    except:
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
+    #Make a viewedItem and if item is already in recently viewed update it
     viewedItem = ViewedItem(item=item)
     viewedItem.save()
     toBeRemoved = userProfile.viewed.filter(item=item)
@@ -162,7 +172,14 @@ def productInfo(request, id):
         userProfile.viewed.remove(toRemove)
     userProfile.viewed.add(viewedItem)
     userProfile.save()
+
     context['comments'] = Comment.objects.filter(item=item).reverse()
+    #make token for pyament link
+    token = default_token_generator.make_token(user)
+    context['token'] = token
+    context['hashSellingChoice'] = myHash(item.id, 'buy')
+
+    #calculate rating for item
     if item.numStarRequests == 0:
         context['notStars'] = 5
     else:
@@ -184,6 +201,7 @@ def productInfo(request, id):
     item.save()
     context['item'] = item
     newComment.save()
+    #Put most recent comments at the top
     context['comments'] = Comment.objects.filter(item=item).reverse()
     context['form'] = CommentForm()
     return render(request, 'auction/product.html', context)
@@ -200,12 +218,11 @@ def bid(request, id):
     context['message'] = 'You must bid more than $'
     context['minBid'] = minBid
     context['itemid'] = id
-    item = Item.objects.get(id__exact = id)
+    item = get_object_or_404(Item, id__exact = id)
 
 
 
     currentUserBids = item.bidInfo.filter(user = request.user)
-    print "in bid in views"
     currentWinner = None
 
     for bidinfo in currentUserBids:
@@ -221,41 +238,16 @@ def bid(request, id):
     if request.method == 'GET':
         context['form'] = BidForm()
         context['item'] = item
-        print context['form']
         return render(request, 'auction/submitBid.html', context)
-
-
-    form = BidForm(request.POST)
-    context['form'] = form
-    if not form.is_valid():
-        return render(request, 'auction/submitBid.html', context)
-    
-    bid = form.cleaned_data['bid']
-    if bid < item.bidPrice:
-        return render(request, 'auction/submitBid.html', context)
-
-    biddingInfo = BiddingInfo(user = request.user, amount = bid)
-    biddingInfo.save()
-
-    item.bidInfo.add(biddingInfo)
-    item.bidPrice = bid
-    item.save()
-    
-    context['form'] = BidForm()
-    context['itemid'] = id
-    item = Item.objects.get(id__exact = id)
-    context['item'] = item
-    context['minBid'] = bid
-    context['isWinningMessage'] = "YOU'RE WINNING!"
-    return render(request, 'auction/submitBid.html', context)
-    #Give confirmation for the bid. Dont wnat to send email because then too many emails
-    #return redirect(reverse('home') + '?message=1')
+    #IF there is a POST requet then that is bad
+    context['error'] = 'Malicious HTTP request'
+    return render(request, 'auction/error.html', context)
 
 
 #Called when a new person makes account
 #Error cases: username not entered, password not entered, confirmed password not entered,
 #             Check that password and confirm password are the same, Check that username is unique
-#             first name not entered, last name not entered, age is non numeric, bio exists
+#             first name not entered, last name not entered
 @transaction.atomic
 def register(request):
     context = {}
@@ -325,7 +317,10 @@ def forgotPassword(request):
         return render(request, 'auction/forgotPassword.html', context)
 
     username = form.cleaned_data['username']
-    user = User.objects.get(username=username)
+    try:
+        user = User.objects.get(username=username)
+    except:
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
 
     token = default_token_generator.make_token(user)
 
@@ -357,8 +352,8 @@ def forgotUsername(request):
     users = User.objects.filter(email=email)
     for u in users:
         if u.check_password(password):
-            email_body = """ Your username %s""" % (u.username)
-            send_mail(subject='Your username', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[email])    
+            email_body = """ Your username is %s""" % (u.username)
+            send_mail(subject='Aukshop username', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[email])    
             return render(request, 'auction/confirmUsername.html', {'email' : email})
     return render(request, 'auction/error.html', {'error': 'Malicious HTTP Request'})
 
@@ -389,7 +384,7 @@ def confirmPasswordReset(request, username, token):
 #Called when user wants to add an item
 @login_required
 @transaction.atomic
-def add_item(request):
+def addItem(request):
     context = {}
 
     # Just display the registration form if this is a GET request.
@@ -401,34 +396,39 @@ def add_item(request):
     
     # Validates the form.
     if not form.is_valid():
+        if form.cleaned_data['picture']:
+            form.picture = form.cleaned_data['picture']
         context['form'] = form
         return render(request, 'auction/registerProduct.html', context)
 
     user = request.user
-    userProfile = UserProfile.objects.get(user = user)
+    try:
+        userProfile = UserProfile.objects.get(user = user)
+    except:
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
 
+    #Store the price with two decimal places
     TWOPLACES = Decimal(10) ** -2
     price = form.cleaned_data['price']
     if price:
         price = price.quantize(TWOPLACES)
-        print(price)
     bidPrice = form.cleaned_data['bidPrice']
     if bidPrice:
         bidPrice = bidPrice.quantize(TWOPLACES)
     new_Item = Item(seller = request.user, description = form.cleaned_data['description'], bidPrice = bidPrice, \
                     endBidDate = form.cleaned_data['endBidDate'], \
                     title = form.cleaned_data['title'], sellingChoice = form.cleaned_data['sellingChoice'],\
-                    price = price)
-    
+                    price = price, category=form.cleaned_data['category'])
 
     new_Item.save()
 
+    #upload picture to s3
     if form.cleaned_data['picture']:
         url = s3_upload(form.cleaned_data['picture'], new_Item.id)
         new_Item.picture_url = url
         new_Item.save()
 
-    #Send email that they registered an item and but some confimation on the redirect page that ell them that they have uploaded an item
+    #Send email that they registered an item and give confirmation message on homepage
     email = user.email
     email_body = """
         You have put %s for sale
@@ -457,67 +457,102 @@ def viewInventory(request):
 @login_required
 @transaction.atomic
 def finishPayment(request):
-    print "got id " +  request.GET['id']
-    sellingchoice = request.GET['sellingchoice']
-    itemid = request.GET['id']
-    item = Item.objects.get(id__exact = itemid)
-    if sellingchoice == "buy":
-        value = item.price
-    else:
-        value = item.finalPrice
-    paymentId = request.GET['paymentId']
-    token = request.GET['token']
-    payerId = request.GET['PayerID']
-    payment = paypalrestsdk.Payment.find(paymentId)
-    payment.execute({"payer_id": payerId})
-    batchid = itemid + str(1)
-    print "below are details after payment"
-    print payment
-    payout = Payout({
-    "sender_batch_header": {
-        "sender_batch_id": batchid,
-        "email_subject": "You have a payment"
-    },
-    "items": [
-        {
-            "recipient_type": "EMAIL",
-            "amount": {
-                "value": 2.00,
-                "currency": "USD"
-            },
-            "receiver": "aysfzai-buyer@hotmail.com",
-            "note": "Thank you.",
-            "sender_item_id": str(itemid),
-        }
-    ]
-})
+    if request.method == 'GET' and 'id' in request.GET and 'sellingchoice' in request.GET and \
+        'paymentId' in request.GET and 'token' in request.GET and 'PayerID' in request.GET:
 
-    if payout.create(sync_mode=True):
-        print("payout[%s] created successfully" % (payout.batch_header.payout_batch_id))
-        item = Item.objects.get(id__exact = itemid)
-        item.buyer = request.user
-        item.finalPrice = value
-        item.boughtDate = date.today()
-        item.isSold = True
-        item.save()
-        print "successfully updated " + item.title
-        return redirect(reverse('home') + "?message=4")
+        sellingchoice = request.GET['sellingchoice']
+        itemid = request.GET['id']
+        try:
+            item = Item.objects.select_for_update().get(id=itemid)
+        except:
+            return render(request, 'auction/error.html', {'error': 'Payment did not work'})
+        #We know this will not throw and error sicne the regualr expression matches sellingchoice to an int
+        sellingchoice = int(sellingchoice)
+        if sellingchoice == myHash(itemid, 'buy'):
+            total = item.price
+        elif sellingchoice == myHash(itemid, 'bid'):
+            total = item.finalPrice
+        else:
+            print('selling choice is wrong')
+            return render(request, 'auction/error.html', {'error': 'Malicious HTTP Request'})
+        paymentId = request.GET['paymentId']
+        token = request.GET['token']
+        payerId = request.GET['PayerID']
+        try:
+            payment = paypalrestsdk.Payment.find(paymentId)
+        except paypalrestsdk.exceptions.MissingConfig:
+            print('missing config')
+            return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
+        payment.execute({"payer_id": payerId})
+        #get rid of random nmber at end
+        batchid = itemid + str(random.randrange(1, 10000))
+        payout = Payout({
+        "sender_batch_header": {
+            "sender_batch_id": batchid,
+            "email_subject": "You have a payment"
+        },
+        "items": [
+            {
+                "recipient_type": "EMAIL",
+                "amount": {
+                    "value": str(total),
+                    "currency": "USD"
+                },
+                "receiver": "aukshop-seller@hotmail.com", #change reciever to be the seller
+                "note": "Thank you.",
+                "sender_item_id": str(itemid),
+            }
+        ]
+    })
 
+        if payout.create(sync_mode=True):
+            winner = request.user
+            item.buyer = winner
+            item.finalPrice = total
+            item.boughtDate = date.today()      
+            item.isSold = True
+            item.save()
+            removeItemFromRecentlyViewed(item)
+            try:
+                buyerProfile = UserProfil.objects.get(user=winner)
+            except:
+                return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
+            email_body = """You have sold %s by bid for $%s. Please send it to %s at \n %s \n %s, %s %s""" % (item.title, item.finalPrice, \
+                winner, buyerProfile.address, buyerProfile.city, buyerProfile.state, buyerProfile.zipcode)
+            send_mail(subject='Your bid item has been sold', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[item.seller.email])
+            return redirect(reverse('home') + "?message=4")
+        else:
+            print('payout failed')
+            return redirect(reverse('home') + "?message=5")
     else:
-        print(payout.error)
-        return redirect(reverse('home') + "?message=5")
+        return render(request, 'auction/error.html', {'error': 'Payment did not work'})
 
 @login_required
 @transaction.atomic
-def paywithPayPal(request,id,sellingchoice):
-    userProfile = UserProfile.objects.get(user = request.user)
+def paywithPayPal(request, id, sellingchoice, token):
+    user = request.user
+    if not default_token_generator.check_token(user, token):
+        print('toek does not match')
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP Request'})
+    try:
+        userProfile = UserProfile.objects.get(user = user)
+    except:
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
     context = {}
     context['userProfile'] = userProfile
-    item = Item.objects.get(id__exact = id)
-    if sellingchoice == "buy":
+    try:
+        item = Item.objects.select_for_update().get(id__exact = id)
+    except:
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP Request'})
+    #Know that this will not throw an error since regular expression matches sellingchoice to an int
+    sellingchoice = int(sellingchoice)
+    if sellingchoice == myHash(item.id, 'buy'):
         total = item.price
-    else:
+    elif sellingchoice == myHash(item.id, 'bid'):
         total = item.finalPrice
+    else:
+        print('erro in selling choice')
+        return render(request, 'auction/error.html', {'error': 'Malicious HTTP Request'})
 
     paypalrestsdk.configure({
   "mode": "sandbox", # sandbox or live
@@ -529,215 +564,56 @@ def paywithPayPal(request,id,sellingchoice):
   "payer": {
     "payment_method": "paypal" },
   "redirect_urls": {
-    "return_url": "http://localhost:8000/finishPayment?id=" + id + "&sellingchoice=" + sellingchoice,
+    "return_url": "http://" + request.get_host() + "/finishPayment?id=" + id + "&sellingchoice=" + str(sellingchoice),
     "cancel_url": "https://devtools-paypal.com/guide/pay_paypal/python?cancel=true" },
 
   "transactions":[{
     "amount": {
-    "total": "12",
+    "total": str(total),
     "currency": "USD" },
     "description": "creating a payment"}]})
 
-    approval_url = ""
     context = {}
     context['item'] = item
     if payment.create():
-        print("Payment created successfully")
-        print payment
-
-        print payment['links']
         links = payment['links']
         for link in links:
             if link['rel'] == 'approval_url':
                 approval_url = link['href']
                 context['link'] = approval_url
-    else:
-        print(payment.error)
-    print approval_url
-
-    # payment = paypalrestsdk.Payment.find("PAY-46562054D3033294DKUYIGWQ")
-    # payment.execute({"payer_id": "ELGV6XMVJU6QU"})
-    # print "below are details after payment"
-    # print payment
-#     payout = Payout({
-#     "sender_batch_header": {
-#         "sender_batch_id": "batch_1",
-#         "email_subject": "You have a payment"
-#     },
-#     "items": [
-#         {
-#             "recipient_type": "EMAIL",
-#             "amount": {
-#                 "value": 0.99,
-#                 "currency": "USD"
-#             },
-#             "receiver": "aysfzai-buyer@hotmail.com",
-#             "note": "Thank you.",
-#             "sender_item_id": "item_1"
-#         }
-#     ]
-# })
-
-#     if payout.create(sync_mode=True):
-#         print("payout[%s] created successfully" % (payout.batch_header.payout_batch_id))
-#     else:
-#         print(payout.error)
-
-    return render(request, 'auction/payment.html', context)
-
-    
-@transaction.atomic
-def makePayment(request):
-    # Set your secret key: remember to change this to your live secret key in production # See your keys here https://dashboard.stripe.com/account/apikeys 
-    if request.method == 'GET':
-        return render(request, 'auction/error.html', {})
-    stripe.api_key = 'sk_test_BQokikJOvBiI2HlWgH4olfQ2'
-    # Get the credit card details submitted by the form 
-    token = request.POST['stripeToken'] 
-    price = request.POST['price']
-    amount = int(float(price)*100)
-    itemId = request.POST['id']
-    item = get_object_or_404(Item, id=itemId).select_for_update()
-    if item.isSold:
-        return render(request, 'auction/error.html', {'error': 'This item has already been bought'})
-    # Create the charge on Stripe's servers - this will charge the user's card 
-    try: 
-        charge = stripe.Charge.create( amount=amount, # amount in cents, again 
-        currency="usd", source=token, description=str(request.user) + ' bought ' + item.title)
-    except stripe.CardError, e: # The card has been declined 
-        #Need to do some error handling here
-        pass
-    
-    #Mark that item got sold
-    #Send email confirmation
-    #Redriect to home page
-    #show confirmation
-    user = request.user
-    buyerProfile = UserProfile.objects.get(user=user)
-    item.isSold = True
-    item.finalPrice = item.price
-    item.boughtDate = strftime("%Y-%m-%d", localtime())
-    item.buyer = user
-    if item.buyer == item.seller:
-        raise ValueError
-    item.save()
-    email_body = """
-        You have bought %s
-        """ % (item.title)
-    
-    send_mail(subject='You bought an item', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[user.email])
-    seller = item.seller 
-    sellerEmail = seller.email
-    email_body = """
-        You have sold %s. Please send it to %s at %s \n %s, %s %s
-        """ % (item.title, user, buyerProfile.address, buyerProfile.city, buyerProfile.state, buyerProfile.zipcode)
-    send_mail(subject='You sold an item', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[sellerEmail])
-    #For each user profile remove the item from recently viewed
-    removeItemFromRecentlyViewed(item)
-    # recipient = stripe.Recipient.create(
-    #     name=item.seller,
-    #     type="individual",
-    #     email=sellerEmail,
-    #     bank_account=sellerProfile.accessToken
-    # )
-    # print(recipient)
-    
-    sellerProfile = UserProfile.objects.get(user=seller)
-    print('stripe id:' + sellerProfile.stripeId)
-    # stripe.Transfer.create(
-    #     amount=amount,
-    #     currency='usd',
-    #     destination=sellerProfile.stripeId,
-    #     source_transaction=charge['id'],
-    #     description="test"
-    # )
-
-    return redirect(reverse('home') + "?message=1")
-    
-
-# Set your secret key: remember to change this to your live secret key in production
-# See your keys here https://dashboard.stripe.com/account/apikeys
-# stripe.api_key = "sk_test_BQokikJOvBiI2HlWgH4olfQ2"
-
-# # Get the credit card details submitted by the form
-# token = request.POST['stripeToken']
-
-# # Create a Customer
-# customer = stripe.Customer.create(
-#     source=token,
-#     description="payinguser@example.com"
-# )
-
-# # Charge the Customer instead of the card
-# stripe.Charge.create(
-#     amount=1000, # in cents
-#     currency="usd",
-#     customer=customer.id
-# )
-
-# # Save the customer ID in your database so you can use it later
-# save_stripe_customer_id(user, customer.id)
-
-# # Later...
-# customer_id = get_stripe_customer_id(user)
-
-# stripe.Charge.create(
-#     amount=1500, # $15.00 this time
-#     currency="usd",
-#     customer=customer_id
-# )
-
-def authentication(request, scope, code):
-    print('Inside authentication')
-    data   = {'grant_type': 'authorization_code',
-            'client_id': 'ca_5zdI88hiyw23dfEoLYf3qsYTz86aoZSj',
-            'client_secret': 'sk_test_x61AEqhtpgOTpOSpVBFVjQ3t',
-            'code': code
-           }
-    url = 'https://connect.stripe.com/oauth/token'
-    resp = requests.post(url, params=data)
-
-    # Grab access_token (use this as your user's API key)
-    response = resp.json()
-    print(response)
-    token = response['access_token']
-    publishableKey = response['stripe_publishable_key']
-    userId = response['stripe_user_id']
-    user = request.user
-    userProfile = UserProfile.objects.get(user=user)
-    userProfile.accessToken = token
-    userProfile.publishableKey = publishableKey
-    userProfile.stripeId = userId
-    userProfile.save()
-    print('stripe Id:' + userProfile.stripeId)
-    return redirect(reverse('home'))
+        if approval_url:  
+            return redirect(approval_url)
+    return redirect(reverse('home') + "?message=5")
 
 
 #need to take into account if the item is sold
-def update_bid(request):
+@login_required
+@transaction.atomic
+def updateBid(request):
     bidInfo = {}
-    itemid = request.GET['itemid']
-    item = Item.objects.get(id__exact = itemid)
-    bidInfo['bidPrice'] = str(item.bidPrice)
-
-    currentUserBids = item.bidInfo.filter(user = request.user)
-    print len(currentUserBids)
-    currentWinner = None
-
-    for bidinfo in currentUserBids:
-        if bidinfo.amount == item.bidPrice:
-            currentWinner = bidinfo.user
-
-    if currentWinner == request.user:
-        bidInfo['message'] = "YOU'RE WINNING!"
-    else:
-        bidInfo['message'] = ""
-
-    # response_text = json.dumps(bidInfo)
-    # return HttpResponse(response_text, content_type='application/json')
     if 'itemid' in request.GET:
         itemid = request.GET['itemid']
-        item = get_object_or_404(Item, id__exact = itemid)
+        try:
+            item = Item.objects.select_for_update().get(id__exact = itemid)
+        except:
+            return HttpResponse('Malicious HTTP Request', content_type='application/json')
+        user = request.user
+        if item.isSold or item.sellingChoice == 'BUY' or item.seller == user:
+            return HttpResponse('Malicious HTTP Request', content_type='application/json')
+        bidInfo['bidPrice'] = str(item.bidPrice)
+
+        currentUserBids = item.bidInfo.filter(user = user)
+        currentWinner = None
+
+        for bidinfo in currentUserBids:
+            if bidinfo.amount == item.bidPrice:
+                currentWinner = bidinfo.user
+
+        if currentWinner == request.user:
+            bidInfo['message'] = "YOU'RE WINNING!"
+        else:
+            bidInfo['message'] = ""
+
         TWOPLACES = Decimal(10) ** -2
         bidPrice = item.bidPrice
         price = bidPrice.quantize(TWOPLACES)
@@ -749,17 +625,27 @@ def update_bid(request):
 @login_required
 def rate(request):
     if 'numStars' in request.POST and 'id' in request.POST:
-        numStars = int(request.POST['numStars'])
+        try:
+            numStars = int(request.POST['numStars'])
+        except ValueError:
+            return HttpResponse('Malicious HTTP Request', content_type='application/json')
         itemId = request.POST['id']
     
         item = get_object_or_404(Item, id=itemId)
+        #Error handling
         if numStars < 1 or numStars > 5:
             return HttpResponse('Malicious HTTP Request', content_type='application/json')
         if item.isSold or item.seller == request.user:
             return HttpResponse('Malicious HTTP Request', content_type='application/json')
+        try:
+            numStars = int(numStars)
+        except ValueError:
+            return HttpResponse('Malicious HTTP Request', content_type='application/json')
+        #Compute new rating and send it back
         item.sumStars = item.sumStars + numStars
         item.numStarRequests = item.numStarRequests + 1
         item.save()
+        #do double division
         newRating = item.sumStars / (item.numStarRequests * 1.0)
         responseText = json.dumps(newRating)
         return HttpResponse(responseText, content_type='application/json')
@@ -768,17 +654,16 @@ def rate(request):
 @login_required
 def sendEmail(request, sellerId, itemTitle):
     context = {}
-    if request.method == 'GET':
-        context['form'] = EmailForm(initial = {'subject': 'Question about ' + itemTitle})
-        return render(request, 'auction/email.html', context)
-
     if len(Item.objects.filter(title=itemTitle)) == 0:
         return render(request, 'auction/error.html', {'error': 'You changed a hidden field'})
-    sellerId = int(sellerId)
     try:
         seller = User.objects.get(id=sellerId)
     except:
         return render(request, 'auction/error.html', {'error': 'You changed a hidden field'})
+    if request.method == 'GET':
+        context['form'] = EmailForm(initial = {'subject': 'Question about ' + itemTitle})
+        return render(request, 'auction/email.html', context)
+
     form = EmailForm(request.POST)
     if not form.is_valid():
         context['form'] = form
@@ -788,10 +673,9 @@ def sendEmail(request, sellerId, itemTitle):
 
     subject = form.cleaned_data['subject']
     body = form.cleaned_data['body']
-    send_mail(subject=subject, message= str(request.user) + '( ' + str(request.user.email) + ') would like to know: ' + body, \
+    send_mail(subject=subject, message= str(request.user) + '(' + str(request.user.email) + ') would like to know: ' + body, \
         from_email='aukshopteam@gmail.com', recipient_list=[seller.email])
     #Give confimration message
-    print('Sent email')
     return redirect(reverse('home') + '?message=3')
 
 @login_required
@@ -799,39 +683,53 @@ def sendEmail(request, sellerId, itemTitle):
 def editItem(request, id):
     context = {}
     try:
-        itemToBeEdited = Item.objects.select_for_update().get(id=int(id))
+        itemToBeEdited = Item.objects.select_for_update().get(id=id)
     except:
         return render(request, 'auction/error.html', {'error': 'Item with that id does not exist'})
     if request.user != itemToBeEdited.seller or itemToBeEdited.isSold:
         return render(request, 'auction/error.html', {'error' : 'Not allowed to edit this item'})
-    if itemToBeEdited.sellingChoice == 'BID' or itemToBeEdited.sellingChoice == 'BIDBUY':
-        context['bid'] = 'True'
+    if itemToBeEdited.sellingChoice == 'BUY':
+        context['buy'] = 'True'
     else:
-        context['bid'] = 'False'
+        context['buy'] = 'False'
     if request.method == 'GET':
         context['form'] = EditItemForm(instance=itemToBeEdited)
         return render(request, 'auction/editItem.html', context)
-    
     form = EditItemForm(request.POST, instance=itemToBeEdited)
 
     if not form.is_valid():
         context ['form'] = form
         return render(request, 'auction/editItem.html', context)
     if itemToBeEdited.isSold:
-        return render(request, 'auction/error.html', {'error' : 'Not allowed to edit this item'})
+        return render(request, 'auction/error.html', {'error' : 'This item has been sold'})
     form.save()
+    itemToBeEdited.picture_url = "http://vector-magz.com/wp-content/uploads/2013/11/question-mark-icon2.png"
+    itemToBeEdited.save()
     return redirect(reverse('inventory'))
 
+@login_required
+@transaction.atomic
 def submitBid(request):
     if request.method == 'POST' and 'itemid' in request.POST and 'bidAmount' in request.POST:
         itemId = request.POST['itemid']
         bidAmount = request.POST['bidAmount']
-        item = get_object_or_404(Item, id=itemId)
-        if item.isSold or item.sellingChoice == 'BUY' or item.seller == request.user:
+        try:
+            item = Item.objects.select_for_update().get(id=itemId)
+        except:
+            return HttpResponse('Malicious HTTP Request', content_type='application/json')
+        if item.isSold:
+            return HttpResponse('Item has been sold', content_type='application/json')
+        if item.sellingChoice == 'BUY' or item.seller == request.user:
+            return HttpResponse('Malicious HTTP Request', content_type='application/json')
+        try:
+            float(bidAmount)
+        except ValueError:
+            return HttpResponse('Malicious HTTP Request', content_type='application/json')
+        #Max bid amount is 10 digits long
+        if float(bidAmount) > 99999999.99:
             return HttpResponse('Malicious HTTP Request', content_type='application/json')
         currentUserBids = item.bidInfo.filter(user = request.user)
 
-        
         biddingInfo = BiddingInfo(user = request.user, amount = bidAmount)
         biddingInfo.save()
         bidInfo = {}
@@ -844,91 +742,8 @@ def submitBid(request):
         return HttpResponse(response_text, content_type='application/json')
     return HttpResponse('Malicious HTTP Request', content_type='application/json')
 
-def pay(request):
-    token = request.GET['stripeToken'] 
-    price = request.GET['price']
-    amount = int(float(price)*100)
-    itemId = request.GET['id']
-    item = get_object_or_404(Item, id=itemId).select_for_update()
-    user = request.user
-    buyerProfile = UserProfile.objects.get(user=user)
-    # paypalrestsdk.configure({
-    #     "mode": "sandbox", # sandbox or live
-    #     "client_id": "Ab0SgjqwSB9h88oGnvvoA5-pLOhlLalh50i3ZJ_uohQ13OYoBnbsEQ8bIknlbt7AYOvQjz2uHf_61hh5",
-    #     "client_secret": "EH5BZ30PMGx0QIVg21A1dND_Qn6vYMUZrXc02h9CoLtvF7hHYiethjT-8rR3L-LQvEVGWIEwLvSyAUw9" })
-    # data   = {'X-PAYPAL-SECURITY-USERID': 'akhilprakash_api1.yahoo.com',
-    #         'X-PAYPAL-SECURITY-PASSWORD': 'GU7979J2Y7E83YCC',
-    #         'X-PAYPAL-SECURITY-SIGNATURE': 'AezEgy1qEwOnYyN0WO5cjdPMHua.AC1S4q3QWyYGSRvcFuAl5UsCsP4I',
-    #         'X-PAYPAL-APPLICATION-ID' : 'APP-80W284485P519543T',
-    #         'X-PAYPAL-REQUEST-DATA-FORMAT' : 'JSON',
-    #         'X-PAYPAL-RESPONSE-DATA-FORMAT' : 'JSON',
-    #         {
-    #             "actionType":"PAY",    # Specify the payment action
-    #             "currencyCode":"USD",  #The currency of the payment
-    #             "receiverList":{"receiver":[{
-    #             "amount":"1.00",                    # The payment amount
-    #             "email":"akhilprakash-facilitator@yahoo.com"}]}  # The payment Receiver's email address
-    #         },
-
-    #         # Where the Sender is redirected to after approving a successful payment
-    #         "returnUrl":"http://Payment-Success-URL",
-
-    #         #Where the Sender is redirected to upon a canceled payment
-    #         "cancelUrl":"http://Payment-Cancel-URL",
-    #         "requestEnvelope":{
-    #             "errorLanguage":"en_US",    # Language used to display errors
-    #             "detailLevel":"ReturnAll"   # Error detail level
-    #             }
-    #         }
-    # url = ' https://svcs.sandbox.paypal.com/AdaptivePayments/Pay'
-
-    resp = requests.post(url, params=data)
-
-    # Grab access_token (use this as your user's API key)
-    response = resp.json()
-
-
-
-
-    item.isSold = True
-    item.finalPrice = item.price
-    item.boughtDate = strftime("%Y-%m-%d", localtime())
-    item.buyer = user
-    if item.buyer == item.seller:
-        raise ValueError
-    item.save()
-    email_body = """
-        You have bought %s
-        """ % (item.title)
-    
-    send_mail(subject='You bought an item', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[user.email])
-    seller = item.seller 
-    sellerEmail = seller.email
-    email_body = """
-        You have sold %s. Please send it to %s at %s \n %s, %s %s
-        """ % (item.title, user, buyerProfile.address, buyerProfile.city, buyerProfile.state, buyerProfile.zipcode)
-    send_mail(subject='You sold an item', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[sellerEmail])
-    #For each user profile remove the item from recently viewed
-    removeItemFromRecentlyViewed(item)
-    # recipient = stripe.Recipient.create(
-    #     name=item.seller,
-    #     type="individual",
-    #     email=sellerEmail,
-    #     bank_account=sellerProfile.accessToken
-    # )
-    # print(recipient)
-    
-    sellerProfile = UserProfile.objects.get(user=seller)
-    print('stripe id:' + sellerProfile.stripeId)
-    # stripe.Transfer.create(
-    #     amount=amount,
-    #     currency='usd',
-    #     destination=sellerProfile.stripeId,
-    #     source_transaction=charge['id'],
-    #     description="test"
-    # )
-
-    return redirect(reverse('home') + "?message=1")
-
 def about(request):
-    return render(request, 'auction/about.html', {})
+    if request.user.is_authenticated():
+        return render(request, 'auction/about.html', {})
+    else:
+        return render(request, 'auction/aboutNotLoggedIn.html', {})

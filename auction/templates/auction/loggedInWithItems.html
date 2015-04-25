@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="description" content="Responsive HTML5 E-Commerce Template" />
+    <meta name="keywords" content="responsive html5 template, e-commerce, shop, bootstrap 3.0, css, jquery, flat, modern" />
+    <meta name="author" content="8Guild" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    {% load static %}
+    <link rel="shortcut icon" href="{% static 'auction/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'auction/favicon.ico' %}" type="image/x-icon">
+    <link href="{% static 'auction/masterslider/style/masterslider.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'auction/LIMOcss/styles.css' %}" rel="stylesheet" media="screen">
+    <script src="{% static 'auction/LIMOjs/libs/modernizr.custom.js' %}"></script>
+    
+    {% block css %}
+    {% endblock %}
+    {% block links %}
+    {% endblock %}
+    <title>{% block title %}  {% endblock %}</title>
+  </head>
+
+  <body>
+
+  {% block nav-bar %}
+    <nav class="menu">
+      <div class="container" id="nav">
+        <ul class="main">
+
+          <li><h1><a href="{% url 'home' %}">AUKSHOP</a></h1></li>
+
+          <li class="has-submenu"><a href="{% url 'home' %}"><span>H</span>ome<i class="fa fa-chevron-down"></i></a></li>
+          <li class="hide-sm"><a href="{% url 'about' %}"><span>A</span>bout</a></li>
+          <li class="has-submenu"><a href="{% url 'profile' user.id %}"><span>P</span>rofile<i class="fa fa-chevron-down"></i></a></li>
+          <li class="hide-sm"><a href="{% url 'logout' %}"><span>L</span>ogout</a></li>
+        </ul>
+
+      </div>
+      <div class="catalog-block">
+        <div class="container">
+          <ul class="catalog">
+              <li></li>
+          </ul>
+        </div>
+      </div>
+
+    </nav>
+
+  {% endblock %}
+
+  {% block content-high%}
+
+
+  {% endblock %}
+
+  {% block content-low %}
+
+  {% load mathfilters %}
+  {% load humanize %}
+  
+  {% if items %}
+    <section class="catalog-grid">
+        <div class="container">
+          {% if buttons and buttons == 'False' %}
+            <h2> Items this User is Selling:</h2>
+          {% endif %}
+          {% if not buttons %}
+            <h2>Other Items: </h2>
+          {% endif %}
+            <div class="row">
+
+            {% for item in items %}
+
+              <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="tile">
+                  {% if item.price %}
+                    <div class="price-label">Buy Now for ${{item.price|floatformat:2|intcomma}}</div>
+                  {% else %} 
+                    <div class="price-label">Biddable!</div>
+                  {% endif %}
+
+                  <img src="{{item.picture_url}}" alt="1"/>
+                  <span class="tile-overlay"></span>
+
+   
+                  <div class="footer">
+                    <a href=" {% url 'productInfo' item.id %}">{{item.title}}</a>
+
+                    {% if item.endBidDate %} 
+                      <p> Bid Ends at {{item.endBidDate}}</p> 
+                    {% else %}
+                      <p> Buy It Now Item Only!</p> 
+                    {% endif %}
+                    <span>by {{item.seller}}</span>
+
+                  </div>
+
+  <!-- Ratings -->
+
+                  <div class="ratings">
+                    <p class="pull-right">{{item.numReviews}} reviews </p>
+                    <p class="stars">
+                      {% with numerator=item.sumStars denominator=item.numStarRequests %}
+                      {% if denominator != 0 %}
+                        <span style="white-space: pre;"> </span>
+                      {% for i in numerator|intdiv:denominator|get_range %}
+                        <span class="glyphicon glyphicon-star"></span>
+                      {% endfor %}
+                      {% endif %}
+                      {% endwith %}
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+            {% endfor %}
+          </div>
+        </div>
+
+      </section>
+    {% endif %}
+
+{% endblock %}
+
+{% block footer %}
+
+{% endblock %}
+
+  </body>
+
+</html>

@@ -1,54 +1,91 @@
-{% extends "auction/base3.html" %}
-{% block title %}{{userProfile}}'s Profile Page{% endblock %}
+{% extends "auction/loggedInWithItems.html" %}
 
-{% block content-high%}
-</br>
+{% block title %}{{userProfile}}'s Profile Page{% endblock %}
+{% block css %}
+  {% load static %}
+  <link href="{% static 'auction/css/shop-homepage.css' %}" rel="stylesheet">
+  <link href="{% static 'auction/css/profile.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content-high %}
+<br>
 
 <div class="container">
 
   <div class="row">
 
+    {% if buttons == 'True' %}
+    <div class="col-md-3">
+      <p class="lead">Manage Acccount</p>
+      <div class="list-group">
+        <a href="{% url 'sellerHistory' %}" class="list-group-item">Recently Sold Products</a>
+        <a href="{% url 'buyerHistory' %}" class="list-group-item">Recently Bought Products</a>
+        <a href="{% url 'addItem' %}" class="list-group-item">Want to Sell Something?</a>
+        <a href="{% url 'inventory' %}" class="list-group-item">Inventory</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="col-md-3">
+    </div>
+    {% endif %}
+
+  
+    <div class="col-md-6">
 
 
-   <div class="col-md-3">
-    <p class="lead">Manage Acccount</p>
-    <div class="list-group">
-      <a href="{% url 'sellerHistory' %}" class="list-group-item">Recently Sold Products</a>
-            <a href="{% url 'buyerHistory' %}" class="list-group-item">Recently Bought Products</a>
-            <a href="{% url 'add_item' %}" class="list-group-item">Want to Sell Something?</a>
-            <a href="{% url 'inventory' %}" class="list-group-item">Inventory</a>
+      <h3 class="panel-title" id="prof">{{userProfile}}'s Profile</h3>
+      <br>
+      <br>
+      <table class="table table-user-information">
+        <tbody>
+          <tr>
+            <td>First Name:</td>
+            <td>{{userProfile.user.first_name}}</td>
+          </tr>
+          <tr>
+            <td>Last Name:</td>
+            <td>{{userProfile.user.last_name}}</td>
+          </tr>
+          <tr>
+            <td>Email</td>
+            <td><a href="mailto:{{userProfile.user.email}}">{{userProfile.user.email}}</a></td>
+          </tbody>
+      </table>
+
+
     </div>
   </div>
 
-  
-  <div class="col-md-6">
-
-
-  <h3 class="panel-title" style="text-align:center;">{{userProfile}}'s Profile</h3>
-  <br>
-  <br>
-  <table class="table table-user-information">
-    <tbody>
-      <tr>
-        <td>First Name:</td>
-        <td>{{user.first_name}}</td>
-      </tr>
-      <tr>
-        <td>Last Name:</td>
-        <td>{{user.last_name}}</td>
-      </tr>
-      <tr>
-        <td>Email</td>
-        <td><a href="mailto:{{user.email}}">{{user.email}}</a></td>
-      </tbody>
-
-
-    </table>
-
-
-  </div>
+{% load mathfilters %}
+<h2> Items this User has Sold:</h2>
+<dl style="width: 300px">
+  <dt>This Week</dt>
+  {% with val0=values.0 c=50 val1=values.1 val2=values.2 val3=values.3 %}
+  {% if val0 == 0 %}
+  <dd><div id="data-one" class="bar" style="width: 6%">{{values.0}}</div></dd>
+  {% else %}
+  <dd><div id="data-one" class="bar" style="width: {{val0|mul:c}}%">{{values.0}}</div></dd>
+  {% endif %}
+  <dt>Last Week</dt>
+  {% if val1 == 0 %}
+  <dd><div id="data-two" class="bar" style="width: 6%">{{values.1}}</div></dd>
+  {% else %}
+  <dd><div id="data-two" class="bar" style="width: {{val1|mul:c}}%">{{values.1}}</div></dd>
+  {% endif %}
+  <dt>2 Weeks Ago</dt>
+  {% if val2 == 0 %}
+  <dd><div id="data-three" class="bar" style="width: 6%">{{values.2}}</div></dd>
+  {% else %}
+  <dd><div id="data-three" class="bar" style="width: {{val2|mul:c}}%">{{values.2}}</div></dd>
+  {% endif %}
+  <dt>3 Weeks Ago</dt>
+  {% if val3 == 0 %}
+  <dd><div id="data-four" class="bar" style="width: 6%">{{values.3}}</div></dd>
+  {% else %}
+  <dd><div id="data-four" class="bar" style="width: {{val3|mul:c}}%">{{values.3}}</div></dd>
+  {% endif %}
+  {% endwith %}
+</dl>
 </div>
-</div>
 
-</div>
 {% endblock %}

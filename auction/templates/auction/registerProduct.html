@@ -1,20 +1,34 @@
-{% extends "auction/base.html" %}
-{% block title %}Add Item{% endblock %}
+{% extends "auction/loggedInNavbar.html" %}
+{% block title %}Register Item{% endblock %}
+
+{% block css %}
+{% load static %}
+  <link href="{% static 'auction/css/profile.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content-high %}
-<script src="../../static/auction/js/form.js" type="text/javascript"></script>
+
+<p class="message" id="error"></p>
+{% load static %}
+<script src="{% static 'auction/js/form.js' %}" type="text/javascript"></script>
 <div class="container">
   <div class="row">  
     <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xs-offset-0 col-sm-offset-0 col-md-offset-3 col-lg-offset-3 toppad" >
       <br>
       <h1>Register Item</h1>
-      <form enctype="multipart/form-data" method="post" action="{% url 'add_item' %}">
+          <p id="error" class="message">
+            {% for err in form.non_field_errors %}
+              {{err}}
+            {% endfor %}
+          </p>
+
+      <form enctype="multipart/form-data" method="post" action="{% url 'addItem' %}">
         <table>
-          <tr><th>{{form.title.label_tag}}</th><td>{{form.title}}</td></tr>
-          <tr><th>{{form.description.label_tag}}</th><td>{{form.description}}</td></tr>
-          <tr><th>{{form.category.label_tag}}</th><td>{{form.category}}</td></tr>
-          <tr><th>{{form.picture.label_tag}}</th><td>{{form.picture}}</td></tr>
-          <tr><th>{{form.sellingChoice.label_tag}}</th><td><select id="id_sellingChoice" name="sellingChoice" onChange="loadMoreOptions()">
+          <td>{{form.title.errors}}</td><tr><th>{{form.title.label_tag}}</th><td>{{form.title}}</td></tr>
+          <td>{{form.description.errors}}</td><tr><th>{{form.description.label_tag}}</th><td>{{form.description}}</td></tr>
+          <td>{{form.category.errors}}</td><tr><th>{{form.category.label_tag}}</th><td>{{form.category}}</td></tr>
+          <td>{{form.picture.errors}}</td><tr><th>{{form.picture.label_tag}}</th><td>{{form.picture}}</td></tr>
+          <td>{{form.sellingChoice.errors}}<tr><th>{{form.sellingChoice.label_tag}}</th><td><select id="id_sellingChoice" name="sellingChoice" onChange="loadMoreOptions()">
 
               {% if form.sellingChoice.value == 'BUY' %}<option value="BUY" selected="selected">Buy It Now</option>
               {% else %} <option value="BUY">Buy It Now</option> {% endif %}
@@ -22,9 +36,12 @@
               {% else %} <option value="BID">Bid</option> {% endif %}
               {% if form.sellingChoice.value == 'BIDBUY'%} <option value="BIDBUY" selected="selected">Bid or Buy It Now</option> {% else %} <option value="BIDBUY">Bid or Buy It Now</option> {% endif %}
               </select></td></tr>
-          <tr><th id="1head">{% if form.sellingChoice.value == 'BUY' %}{{form.price.label_tag}}{% elif form.sellingChoice.value == 'BID' %}{{form.bidPrice.label_tag}} {% else %}{{form.price.label_tag}} {% endif %}</th><td id="1box">{% if form.sellingChoice.value == 'BUY' %}{{form.price}}{% elif form.sellingChoice.value == 'BID' %}{{form.bidPrice}} {% else %}{{form.price}} {% endif %}</td></tr>
-          <tr><th id="2head">{% if form.sellingChoice.value == 'BID' %}{{form.endBidDate.label_tag}} {% elif form.sellingChoice.value == 'BIDBUY' %} {{form.bidPrice.label_tag}} {% endif %}</th><td id="2box">{% if form.sellingChoice.value == 'BID' %}{{form.endBidDate}} {% elif form.sellingChoice.value == 'BIDBUY' %} {{form.bidPrice}} {% endif %}</td></tr>
-          <tr><th id="3head">{% if form.sellingChoice.value == 'BIDBUY' %}{{form.endBidDate.label_tag}} {% endif %}</th><td id="3box">{% if form.sellingChoice.value == 'BIDBUY' %}{{form.endBidDate}} {% endif %}</td></tr>
+
+          <td>{% if form.sellingChoice.value == 'BUY' %}{{form.price.errors}}{% elif form.sellingChoice.value == 'BID' %}{{form.bidPrice.errors}} {% else %}{{form.price.errors}} {% endif %}</td><tr><th id="1head">{% if form.sellingChoice.value == 'BUY' %}{{form.price.label_tag}}{% elif form.sellingChoice.value == 'BID' %}{{form.bidPrice.label_tag}} {% else %}{{form.price.label_tag}} {% endif %}</th><td id="1box">{% if form.sellingChoice.value == 'BUY' %}{{form.price}}{% elif form.sellingChoice.value == 'BID' %}{{form.bidPrice}} {% else %}{{form.price}} {% endif %}</td></tr>
+
+          <td>{% if form.sellingChoice.value == 'BID' %}{{form.endBidDate.errors}} {% elif form.sellingChoice.value == 'BIDBUY' %} {{form.bidPrice.errors}} {% endif %}</td><tr><th id="2head">{% if form.sellingChoice.value == 'BID' %}{{form.endBidDate.label_tag}} {% elif form.sellingChoice.value == 'BIDBUY' %} {{form.bidPrice.label_tag}} {% endif %}</th><td id="2box">{% if form.sellingChoice.value == 'BID' %}{{form.endBidDate}} {% elif form.sellingChoice.value == 'BIDBUY' %} {{form.bidPrice}} {% endif %}</td></tr>
+          
+          <td>{% if form.sellingChoice.value == 'BIDBUY' %}{{form.endBidDate.errors}} {% endif %}</td><tr><th id="3head">{% if form.sellingChoice.value == 'BIDBUY' %}{{form.endBidDate.label_tag}} {% endif %}</th><td id="3box">{% if form.sellingChoice.value == 'BIDBUY' %}{{form.endBidDate}} {% endif %}</td></tr>
         </table>
                   
         {% csrf_token %}

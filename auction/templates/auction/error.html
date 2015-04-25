@@ -1,4 +1,10 @@
-{% extends 'auction/base2.html' %}
+{% extends "auction/loggedInWithItems.html" %}
+
+{% block css %}
+	{% load static %}
+	<link href="{% static 'auction/css/shop-homepage.css' %}" rel="stylesheet">
+    <link href="{% static 'auction/css/profile.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block title %}Error Page{% endblock %}
 

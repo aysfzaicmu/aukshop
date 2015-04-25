@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Responsive HTML5 E-Commerce Template" />
+    <meta name="keywords" content="responsive html5 template, e-commerce, shop, bootstrap 3.0, css, jquery, flat, modern" />
+    <meta name="author" content="8Guild" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>{% block title %}{% endblock %}</title>
+    {% load static %}
+    <link rel="shortcut icon" href="{% static 'auction/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'auction/favicon.ico' %}" type="image/x-icon">
+
+    <link href="{% static 'auction/masterslider/style/masterslider.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'auction/LIMOcss/styles.css' %}" rel="stylesheet" media="screen">
+    <script src="{% static 'auction/LIMOjs/libs/modernizr.custom.js' %}"></script>
+    {% block css %}{% endblock %}
+    <link href="{% static 'auction/css/shop-homepage.css' %}" rel="stylesheet">
+  </head>
+
+  <body>
+
+  {% block nav-bar %}
+
+    <nav class="menu">
+      <div class="container" id="nav">
+        <ul class="main">
+
+        <li><h1><a href="{% url 'home' %}">AUKSHOP</a></h1></li>
+          <li class="has-submenu"><a href="{% url 'home' %}"><span>H</span>ome<i class="fa fa-chevron-down"></i></a></li>
+          <li class="hide-sm"><a href="{% url 'about' %}"><span>A</span>bout</a></li>
+          <li class="has-submenu"><a href="{% url 'profile' user.id %}"><span>P</span>rofile<i class="fa fa-chevron-down"></i></a></li>
+          <li class="hide-sm"><a href="{% url 'logout' %}"><span>L</span>ogout</a></li>
+
+        </ul>
+
+      </div>
+      <div class="catalog-block">
+        <div class="container">
+            <ul class="catalog">
+              <li></li>
+            </ul>
+          </div>
+      </div>
+
+    </nav>
+
+  {% endblock %}
+
+{% block content-high %}
+
+{% endblock %}
+
+
+{% block content-low%}
+
+{% endblock %}
+
+
+
+
+  </body>
+
+</html>

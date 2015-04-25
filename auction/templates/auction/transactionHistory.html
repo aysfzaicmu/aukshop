@@ -1,7 +1,14 @@
-{% extends "auction/base.html" %}
+{% extends "auction/loggedInNavbar.html" %}
 {% block title%}Transaction History{% endblock %}
 
+{% block css %}
+{% load static %}
+	<link href="{% static 'auction/css/profile.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block content-high %}
+{% load humanize %}
+<br>
 	<table class="table table-striped table-bordered">
 		<tr> 
 			<td> Item </td>
@@ -14,7 +21,7 @@
 				<td> {{item.title}} </td>
 				<td> {% if item.buyer %} {{item.buyer}} {% endif %}</td>
 				<td> {{item.seller}} </td>
-				<td> ${{item.finalPrice|floatformat:2}} </td>
+				<td> ${{item.finalPrice|floatformat:2|intcomma}} </td>
 			</tr>
 		{% endfor %}
 	</table>

@@ -1,13 +1,25 @@
-{% extends "auction/base1.html" %}
+{% extends "auction/notLoggedInNavbar.html" %}
+
 {% block title %}Login Page{% endblock %}
+
+{% block css %}
+    {% load static %}
+    <link href="{% static 'auction/css/shop-homepage.css' %}" rel="stylesheet">
+    <link href="{% static 'auction/css/login.css' %}" rel="stylesheet">
+    <link href="{% static 'auction/css/boxes.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content-high %}
 <div class="container">    
-    <div id="loginbox" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">                    
+    <div id="loginbox" class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2"> 
+        <div class="panel panel-info" >                   
             <div class="panel-heading">
-                <h1>Sign In</h1>
-                <div id="login"><a href="{% url 'forgotPassword' %}">Forgot password?</a></div>
-                <div id="login"><a href="{% url 'forgotUsername' %}">Forgot username?</a></div>
+                <div class="panel-title">Sign In</div>
+                <span id="log">
+                    <div id="login"><a href="{% url 'forgotPassword' %}" id="text">Forgot password?</a></div>
+                    <br>
+                    <div id="login"><a href="{% url 'forgotUsername' %}" id="text">Forgot username?</a></div>
+                </span>
             </div>     
 
             <div id="newPassword" class="panel-body" >
@@ -19,18 +31,6 @@
                     <table>
                         {{form}}
                     </table>
-<!-- 
-                    <div id="bottom" class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
-
-                        <span type="text" class="form-control" name="username" value="" placeholder="username or email">{{form.username}}</span>                                        
-                    </div>
-
-                    <div id="bottom" class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-                        <span type="text" class="form-control" name="password" value="" placeholder="password">{{form.password}}</span>
-
-                    </div> -->
 
                     <br>
 
@@ -46,7 +46,7 @@
                     {% csrf_token %}
 
                 </form>     
-
+            </div>
             </div>
         </div>
     </div>

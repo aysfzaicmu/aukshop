@@ -16,7 +16,7 @@ class Item(models.Model):
 	seller = models.ForeignKey(User, related_name='seller')
 	buyer = models.ForeignKey(User, blank=True, related_name='buyer', null= True)
 	# picture = models.FileField(blank=True)
-	picture_url = models.CharField(blank=True, max_length=256)
+	picture_url = models.CharField(blank=True, max_length=256, default="http://vector-magz.com/wp-content/uploads/2013/11/question-mark-icon2.png")
 	isSold = models.BooleanField(default=False)
 	creationDate = models.DateField(auto_now_add=True)
 	endBidDate = models.DateField(blank=True, null=True)

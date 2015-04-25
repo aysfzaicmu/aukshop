@@ -7,105 +7,19 @@
 label[for=id_sellingChoice] {
     width: 130px;
 }
-
-.stripe-connect {
-  display: inline-block;
-  margin-bottom: 1px;
-
-  background-image: -webkit-linear-gradient(#28A0E5, #015E94);
-  background-image: -moz-linear-gradient(#28A0E5, #015E94);
-  background-image: -ms-linear-gradient(#28A0E5, #015E94);
-  background-image: linear-gradient(#28A0E5, #015E94);
-
-  -webkit-font-smoothing: antialiased;
-  border: 0;
-  padding: 1px;
-  height: 30px;
-  text-decoration: none;
-
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
-  border-radius: 4px;
-
-  -moz-box-shadow: 0 1px 0 rgba(0,0,0,0.2);
-  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
-
-  cursor: pointer;
-
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.stripe-connect span {
-  display: block;
-  position: relative;
-  padding: 0 12px 0 44px;
-  height: 30px;
-
-  background: #1275FF;
-  background-image: -webkit-linear-gradient(#7DC5EE, #008CDD 85%, #30A2E4);
-  background-image: -moz-linear-gradient(#7DC5EE, #008CDD 85%, #30A2E4);
-  background-image: -ms-linear-gradient(#7DC5EE, #008CDD 85%, #30A2E4);
-  background-image: linear-gradient(#7DC5EE, #008CDD 85%, #30A2E4);
-
-  font-size: 14px;
-  line-height: 30px;
-  color: white;
+.negativeMessage {
+  color: red;
   font-weight: bold;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
-
-  -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
-  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
-
-  -moz-border-radius: 3px;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
 }
 
-.stripe-connect span:before {
-  content: '';
-  display: block;
-  position: absolute;
-  left: 11px;
-  top: 50%;
-  width: 23px;
-  height: 24px;
-  margin-top: -12px;
-  background-repeat: no-repeat;
-  background-size: 23px 24px;
-}
-
-.stripe-connect:active {
-  background: #005D93;
-}
-
-.stripe-connect:active span {
-  color: #EEE;
-
-  background: #008CDD;
-  background-image: -webkit-linear-gradient(#008CDD, #008CDD 85%, #239ADF);
-  background-image: -moz-linear-gradient(#008CDD, #008CDD 85%, #239ADF);
-  background-image: -ms-linear-gradient(#008CDD, #008CDD 85%, #239ADF);
-  background-image: linear-gradient(#008CDD, #008CDD 85%, #239ADF);
-
-  -moz-box-shadow: inset 0 1px 0 rgba(0,0,0,0.1);
-  -webkit-box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
-}
-
-.stripe-connect:active span:before {
-
+.positiveMessage {
+  color: green;
+  font-weight: bold;
 }
 
 .message {
   color: red;
   font-weight: bold;
-  
 }
 
 .rating > button:hover:before {
@@ -117,6 +31,8 @@ label[for=id_sellingChoice] {
 .rating {
   unicode-bidi: bidi-override;
   direction: rtl;
+  position: relative;
+  right: 17px;
 }
 .rating > button:hover:before,
 .rating > button:hover ~ button:before {
@@ -146,11 +62,9 @@ label[for=id_endBidDate] {
     white-space: pre;
 }
 
-#seachBar {
-  position: absolute;
-  transition: .5s ease;
-  left: 202px;
-  top: 45px;
+#searchBar {
+  float: right;
+  padding: 9px 40px;
 }
 
 #loginbox {
@@ -192,33 +106,33 @@ label[for=id_endBidDate] {
 }
 
 #id_title {
-  position: fixed;
-  top: 191px;
+  position: relative;
+  top: -6px;
 }
 
 #id_description {
-  position: fixed;
-  top: 225px;
+  position: relative;
+  top: -6px;
 }
 
 #id_category {
-  position: fixed;
-  top: 260px;
+  position: relative;
+  top: -6px;
 }
 
 #id_picture {
-  position: fixed;
-  top: 294px;
+  position: relative;
+  top: -6px;
 }
 
 #id_sellingChoice {
-  position: fixed;
-  top: 327px;
+  position: relative;
+  top: -6px;
 }
 
 #id_price {
-  position: fixed;
-  top: 360px;
+  position: relative;
+  top: -6px;
 }
 
 #id_bidPrice {
@@ -229,4 +143,85 @@ label[for=id_endBidDate] {
 #itemButton {
   position: relative;
   top: 10px;
+}
+
+#id_username {
+  position: relative;
+  left: 12px;
+  top: -5px;
+}
+
+#id_email {
+  position: relative;
+  left: 12px;
+  top: -5px;
+}
+
+#id_password {
+  position: relative;
+  left: 12px;
+  top: -5px;
+}
+
+#id_password1 {
+  position: relative;
+  left: 12px;
+  top: -5px;
+}
+
+#id_password2 {
+  position: relative;
+  left: 12px;
+  top: -5px;
+}
+
+.list-group-item {
+  background-color: #ff9016;
+}
+
+a.list-group-item {
+  color: white;
+}
+
+img {
+  width: 200px;
+  height: 150px;
+}
+
+#prof {
+  text-align: center;
+}
+
+#itemPic {
+  width: 300px;
+  height: 200px;
+}
+
+.pull-right {
+  white-space: pre;
+}
+
+label[for=id_body] {
+  position: relative;
+  top: 5px;
+}
+
+.bar {
+  margin-bottom: 10px;
+  color: #fff;
+  padding: 4px;
+  text-align: center;
+  background: -webkit-gradient(linear, left top, left bottom, from(#ff7617), to(#ff9016));
+  background-color: #ff9016;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+.bg-image {
+  background-image: url(http://www.instantdownlineteam.com/wp-content/uploads/2013/02/img_team.png);
+}
+
+#id_search {
+  max-width: 390px;
 }

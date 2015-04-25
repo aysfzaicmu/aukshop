@@ -3,50 +3,44 @@ from collections import OrderedDict
 from auction.forms import *
 from datetime import date
 from django.core.mail import send_mail
+import math
+from django.contrib.auth.tokens import default_token_generator
+from django.core.urlresolvers import reverse
 
 MAX_RECENTLY_VIEWED = 10
 
 def bidCheck(request):
     # Check all items to see if any have passed endBidDate
     items = Item.objects.filter(endBidDate__lte = date.today()).filter(isSold=False)
-    #items = Item.objects.filter(endBidDate__gte = date.today()).filter(isSold=False)
-    print('Items found in filter:')
-    print(items)
     loggedInUser = request.user
     loggedInWon = False
     for item in items:
-        ##NEED TO ADD CASE IF NO ONE BID ON THE ITEM
-
         #find the user who bid the most and send an email
         #need a user to keep track of items they have won
-        print "printing bids on " + item.title
         winner = request.user
         maxBid = 0
         if len(item.bidInfo.all()) != 0:
-            print "printing bidInfo length"
-            print len(item.bidInfo.all())
             for b in item.bidInfo.all():
-                if b.amount > maxBid:
+                if not math.isnan(b.amount) and b.amount > maxBid:
                     maxBid = b.amount
                     winner = b.user
             #update item
-            item.buyer = winner
+            # item.buyer = winner
             if winner == loggedInUser:
                 loggedInWon = True
             item.finalPrice = maxBid
             item.boughtDate = date.today()
             item.isSold = True
             item.save()
-            email_body = """You have won a bid for %s""" % (item.title)
+            token = default_token_generator.make_token(winner)
+            email_body = """You have won a bid for %s. Please visit http://%s%s to pay for the item""" % (item.title, request.get_host(), \
+                reverse('paywithPayPal', args=(item.id, myHash(item.id, 'bid'), token)))
+
             send_mail(subject='You won the bid for an item', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[winner.email])
             buyerProfile = UserProfile.objects.get(user=winner)
-            email_body = """You have sold %s by bid for $%s. Please send it to %s at %s \n %s, %s %s""" % (item.title, item.finalPrice, \
-                winner, buyerProfile.address, buyerProfile.city, buyerProfile.state, buyerProfile.zipcode)
-            send_mail(subject='Your bit item has been sold', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[item.seller.email])
             #Need to remove this item from recently viewed
             removeItemFromRecentlyViewed(item)
         else:
-            print "no one bid on " + item.title
             #enter here if no one bids on the item by the endBidDate
             #change the item type to buy it now with price equal to starting bid price
             item.sellingchoice = 'BUY'
@@ -86,17 +80,9 @@ def search(context, form, user, subsetOfAllItems, category=""):
     context['form'] = SearchForm()
     return context
 
-#Put this in another module and import it
 def getRecentlyViewed(userProfile):
     #Want most recent items in the beginning of the list
     recentlyViewed = userProfile.viewed.all().reverse()
-
-    a = []
-    for k in recentlyViewed.all():
-        if k.item.seller.id != userProfile.user.id:
-            a.append(k)
-
-    recentlyViewed = a
     subset = []
     counter = 0
     for item in recentlyViewed:
@@ -112,3 +98,6 @@ def removeItemFromRecentlyViewed(item):
         for toRemove in toBeRemoved:
             userProfile.viewed.remove(toRemove)
         userProfile.save()
+
+def myHash(id, value):
+    return abs(hash(str(id) + value + str(id)))

@@ -1,5 +1,9 @@
-{% extends "auction/base1.html" %}
+{% extends "auction/notLoggedInNavbar.html" %}
 {% block title %}Register Page{% endblock %}
+{% block css %}
+    {% load static %}
+    <link href="{% static 'auction/css/register.css' %}" rel="stylesheet">
+{% endblock %}
 
 
 {% block content-high %}
@@ -8,61 +12,71 @@
 
     <div class="row">
         <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
-
+            <p id="error" class="message">
+            {% for err in form.non_field_errors %}
+              {{err}}
+            {% endfor %}
+            </p>
             <form method="post" action="{% url 'register' %}">
                 <h2>Please Sign Up <small>It's free and always will be.</small></h2>
                 <hr class="colorgraph">
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
+                                {{form.firstName.errors}}
                                 {{form.firstName}}
                             </div>
                         </div>
 
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                        
+                                {{form.lastName.errors}}
                                 {{form.lastName}}
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-              
+                        {{form.username.errors}}
                         {{form.username}}
                     </div>
                     <div class="form-group">
+                        {{form.email.errors}}
                         {{form.email}}
                     </div>
 
                     <div class="form-group">
-              
+                        {{form.address.errors}}
                         {{form.address}}
                     </div>
 
                     <div class="form-group">
-              
+                        {{form.city.errors}}
                         {{form.city}}
                     </div>
-
-                    <div class="form-group">
-              
-                       {{form.state}}
-                    </div>
-
-                    <div class="form-group">
-              
-                     {{form.zipcode}}
-                    </div>
-
                     <div class="row">
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
-                      
-                           {{form.password1}}
+                                {{form.state.errors}}
+                                {{form.state}}
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-6 col-md-6">
                             <div class="form-group">
+                                {{form.zipcode.errors}}
+                                {{form.zipcode}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6 col-md-6">
+                            <div class="form-group">
+                                {{form.password1.errors}}
+                                {{form.password1}}
+                            </div>
+                        </div>
+                        <div class="col-xs-12 col-sm-6 col-md-6">
+                            <div class="form-group">
+                                {{form.password2.errors}}
                                 {{form.password2}}
                             </div>
                         </div>
@@ -82,4 +96,3 @@
     </div>
 </div>
 {% endblock %}
-    

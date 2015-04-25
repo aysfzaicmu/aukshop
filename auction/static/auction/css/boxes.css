@@ -1,0 +1,22 @@
+.panel-info {
+  border-color: #ff9016;
+}
+
+.panel-title {
+  color: white;
+  background-color: #ff9016;
+  border-color: #ff9016;
+}
+
+.panel-info > .panel-heading {
+  color: white;
+  background-color: #ff9016;
+  border-color: #ff9016;
+}
+
+#text {
+  color: white;
+  font-size: medium;
+  position: relative;
+  bottom: 5px;
+}

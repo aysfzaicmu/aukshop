@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from models import *
 from decimal import *
 from datetime import date
-import re
+#import re
 import localflavor.us.forms
 
 forms.DateInput.input_type="date"
@@ -20,7 +20,7 @@ class RegistrationForm(forms.Form):
 	username = forms.CharField(max_length=20,widget=forms.TextInput(attrs={'class':'form-control input-lg','placeholder':'Username'}))
 	address = forms.CharField(max_length=40,widget=forms.TextInput(attrs={'class':'form-control input-lg','placeholder':'Address'}))
 	city = forms.CharField(max_length=40,widget=forms.TextInput(attrs={'class':'form-control input-lg','placeholder':'City'}))
-	state = localflavor.us.forms.USStateField(widget=forms.TextInput(attrs={'class':'form-control input-lg','placeholder':'State'}))
+	state = localflavor.us.forms.USStateField(widget=forms.Select(choices=localflavor.us.us_states.US_STATES,attrs={'class':'form-control'}))
 	zipcode = localflavor.us.forms.USZipCodeField(widget=forms.TextInput(attrs={'class':'form-control input-lg','placeholder':'ZipCode'}))
 	password1 = forms.CharField(max_length=200, label='Password',
 		widget=forms.PasswordInput(attrs={'class':'form-control input-lg','placeholder':'Password'}))
@@ -65,52 +65,6 @@ class RegistrationForm(forms.Form):
 			raise forms.ValidationError('username too long')
 		if len(password1) > 200 or len(password2) > 200:
 			raise forms.ValidationError('password too long')
-		# address = cleaned_data.get('address')
-		# city = cleaned_data.get('city')
-		# state = cleaned_data.get('state')
-		# zipcode = cleaned_data.get('zipcode')
-		# if address is None or len(address) > 40:
-		# 	raise forms.ValidationError('Address too long')
-		# index = address.index(' ')
-		# if index == -1:
-		# 	raise forms.ValidationError('Incorrect address format')
-		# intPart = address[0::index]
-		# try:
-		# 	intPart = int(intPart)
-		# except:
-		# 	raise forms.ValidationError('Invalid address format')
-		# spaces = address.count(' ')
-		# if spaces != 3:
-		# 	raise forms.ValidationError('Incorrect address format')
-		# if city is None or len(city) > 40 or any(char.isdigit() for char in city):
-		# 	raise forms.ValidationError('City too long')
-		# if state is None or len(state) > 2:
-		# 	raise forms.ValidationError('State too long')
-		# if zipcode is None or zipcode < 99999 or zipcode > 10000:
-		# 	raise forms.ValidationError('Invalid zipcode')
-		# address = cleaned_data.get('address')
-		# city = cleaned_data.get('city')
-		# state = cleaned_data.get('state')
-		# zipcode = cleaned_data.get('zipcode')
-		# if address is None or len(address) > 40:
-		# 	raise forms.ValidationError('Address too long')
-		# index = address.index(' ')
-		# if index == -1:
-		# 	raise forms.ValidationError('Incorrect address format')
-		# intPart = address[0::index]
-		# try:
-		# 	intPart = int(intPart)
-		# except:
-		# 	raise forms.ValidationError('Invalid address format')
-		# spaces = address.count(' ')
-		# if spaces != 3:
-		# 	raise forms.ValidationError('Incorrect address format')
-		# if city is None or len(city) > 40 or any(char.isdigit() for char in city):
-		# 	raise forms.ValidationError('City too long')
-		# if state is None or len(state) > 2:
-		# 	raise forms.ValidationError('State too long')
-		# if zipcode is None:
-		# 	raise forms.ValidationError('Invalid zipcode')
 		# We must return the cleaned data we got from our parent.
 		return cleaned_data
 
@@ -125,6 +79,13 @@ class RegistrationForm(forms.Form):
 		# dictionary
 		return username
 
+	def clean_email(self):
+		email = self.cleaned_data.get('email')
+		if User.objects.filter(email__exact=email):
+			raise forms.ValidationError('Email already taken')
+		return email
+
+
 class ForgotPasswordForm(forms.Form):
 	username = forms.CharField(max_length=20)
 	email = forms.EmailField(max_length=75)
@@ -134,11 +95,12 @@ class ForgotPasswordForm(forms.Form):
 		username = cleaned_data.get('username')
 		try:
 			user = User.objects.get(username=username)
-			email = cleaned_data.get('email')
-			if user.email != email:
-				raise forms.ValidationError('Username and email do not match')
 		except:
 			raise forms.ValidationError('A user with username ' + username + ' does not exist')
+
+		email = cleaned_data.get('email')
+		if user.email != email:
+			raise forms.ValidationError('Username and email do not match')
 		return cleaned_data
 
 class ForgotUsernameForm(forms.Form):
@@ -171,7 +133,7 @@ class ChangePasswordForm(forms.Form):
 			raise forms.ValidationError('Password too long')
 		return cleaned_data
 
-class AddingItemForm(forms.ModelForm):  #need to ad clean picutre method
+class AddingItemForm(forms.ModelForm): 
 	
 	class Meta:
 		model = Item
@@ -195,15 +157,13 @@ class AddingItemForm(forms.ModelForm):  #need to ad clean picutre method
 	picture = forms.FileField(required=False)
 
 	def clean(self):
-		#Need to check date formats
 		cleaned_data = super(AddingItemForm, self).clean()
-		print(cleaned_data)
 		title = cleaned_data.get('title')
-		if not title or len(title) > 20:
+		if len(title) > 20:
 			raise forms.ValidationError('Title too long')
 		description = cleaned_data.get('description')
 		if not description or len(description) > 600:
-			raise forms.ValidationError('Description too long')
+			raise forms.ValidationError('Invalid Description')
 		price = cleaned_data.get('price')
 		if price: 
 			checkTwoDecimalPlaces(price)
@@ -230,19 +190,11 @@ class AddingItemForm(forms.ModelForm):  #need to ad clean picutre method
 			raise forms.ValidationError('Illegal Selling choice')
 		if endBidDate and endBidDate < date.today():
 			raise forms.ValidationError('Cannot have end bid date in the past')
-		#if endBidDate:
-		 #	match = re.match(str(endBidDate), "%Y-%m-%d")
-		 #	groups = match.groups()
-		 #	year = groups[0]
-		 #	month = groups[1]
-		 #	day = groups[2]
-
-		 #	raise forms.ValidationError('Date not in right format')
 		return cleaned_data
 
 class SearchForm(forms.Form):
 	search = forms.CharField(max_length=200,widget=forms.TextInput(attrs={'class':'form-control input-lg','placeholder':'Search',
-							'float':'none','margin':'auto','style':'max-width : 390px'}))
+							'float':'none','margin':'auto'}))
 
 	def clean(self):
 		cleaned_data = super(SearchForm, self).clean()
@@ -277,7 +229,7 @@ class CommentForm(forms.Form):
 class EmailForm(forms.Form):
 	subject = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Subject',
 							}))
-	body = forms.CharField(max_length=10000,widget=forms.Textarea(attrs={'class':'form-control','placeholder':'Email Body',
+	body = forms.CharField(max_length=10000, widget=forms.Textarea(attrs={'class':'form-control','placeholder':'Email Body',
 							}))
 
 
@@ -304,7 +256,10 @@ class EditItemForm(forms.ModelForm):
 			'bidInfo',
 			'numReviews',
 			'sumStars',
-			'numStarRequests'
+			'numStarRequests',
+			'bidPrice',
+			'endBidDate',
+			'sellingChoice'
 		)
 		labels = {
 			'endBidDate': 'End Bid Date',
@@ -313,45 +268,19 @@ class EditItemForm(forms.ModelForm):
 
 	def clean(self):
 		cleaned_data = super(EditItemForm, self).clean()
-		print(cleaned_data)
 		title = cleaned_data.get('title')
-		if not title or len(title) > 20:
+		if len(title) > 20:
 			raise forms.ValidationError('Title too long')
 		description = cleaned_data.get('description')
 		if not description or len(description) > 600:
-			raise forms.ValidationError('Description too long')
+			raise forms.ValidationError('Invalid description')
 		price = cleaned_data.get('price')
 		if price: 
 			checkTwoDecimalPlaces(price)
 			if price < .5 or price > 99999999.99:
 				raise forms.ValidationError('Price too big or too small')
 		bidPrice = cleaned_data.get('bidPrice')
-		if bidPrice:
-			checkTwoDecimalPlaces(bidPrice)
-			if bidPrice < .5 or bidPrice > 99999999.99:
-				raise forms.ValidationError('Bid Price too big or too small')
-		sellingChoice = cleaned_data.get('sellingChoice')			
-
 		endBidDate = cleaned_data.get('endBidDate')
-		if sellingChoice == 'BUY':
-			if bidPrice or endBidDate or not price:
-				raise forms.ValidationError('Form is inconsistent')
-		elif sellingChoice == 'BID':
-			if price or not bidPrice or not endBidDate:
-				raise forms.ValidationError('Form is inconsistent')
-		elif sellingChoice == 'BIDBUY':
-			if not (bidPrice and price and endBidDate):
-				raise forms.ValidationError('Form is inconsistent')
-		else:
-			raise forms.ValidationError('Illegal Selling choice')
-		if endBidDate and endBidDate < date.today():
-			raise forms.ValidationError('Cannot have end bid date in the past')
-		#if endBidDate:
-		 #	match = re.match(str(endBidDate), "%Y-%m-%d")
-		 #	groups = match.groups()
-		 #	year = groups[0]
-		 #	month = groups[1]
-		 #	day = groups[2]
-
-		 #	raise forms.ValidationError('Date not in right format')
+		if bidPrice or endBidDate:
+			raise forms.ValidationError('error')
 		return cleaned_data

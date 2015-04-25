@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
                 ('price', models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)),
                 ('bidPrice', models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)),
                 ('finalPrice', models.DecimalField(null=True, max_digits=10, decimal_places=2, blank=True)),
-                ('picture_url', models.CharField(max_length=256, blank=True)),
+                ('picture_url', models.CharField(default=b'http://vector-magz.com/wp-content/uploads/2013/11/question-mark-icon2.png', max_length=256, blank=True)),
                 ('isSold', models.BooleanField(default=False)),
                 ('creationDate', models.DateField(auto_now_add=True)),
                 ('endBidDate', models.DateField(null=True, blank=True)),

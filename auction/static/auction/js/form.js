@@ -1,28 +1,3 @@
-/*function loadMoreOptionsA()
-{
-	var choice = document.getElementById("id_sellingChoice").value;
-	var change = document.getElementById("change");
-	if (choice === "BUY")
-	{
-		change.innerHTML = "<tr><th><label for=\"id_price\">Price:                      </label></th><td><input id=\"id_price\" name=\"price\" step=\"0.01\" type=\"number\" /></td></tr>";
-	}
-	else if (choice === "BID")
-	{
-		change.innerHTML = "<tr><th><label for=\"id_bidPrice\">Bid Price:               </label></th><td><input id=\"id_bidPrice\" name=\"bidPrice\" step=\"0.01\" type=\"number\" /></td></tr>"
-                  + "<br><tr><th><label for=\"id_endBidDate\">End Bid Date:        </label></th><td><input id=\"id_endBidDate\" name=\"endBidDate\" type=\"date\" /></td></tr>";
-	}
-	else if (choice === "BIDBUY")
-	{
-		change.innerHTML = "<tr><th><label for=\"id_price\">Price:                      </label></th><td><input id=\"id_price\" name=\"price\" step=\"0.01\" type=\"number\" /></td></tr>"
-                  + "<br><tr><th><label for=\"id_bidPrice\">Bid Price:                </label></th><td><input id=\"id_bidPrice\" name=\"bidPrice\" step=\"0.01\" type=\"number\" /></td></tr>"
-                  + "<br><tr><th><label for=\"id_endBidDate\">End Bid Date:        </label></th><td><input id=\"id_endBidDate\" name=\"endBidDate\" type=\"date\" /></td></tr>"
-	}
-	else
-	{
-		//error handling. Should never reach here
-	}
-}*/
-
 function loadMoreOptions()
 {
 	var choice = document.getElementById("id_sellingChoice").value;
@@ -62,5 +37,7 @@ function loadMoreOptions()
 	else
 	{
 		//error handling. Should never reach here
+		$("#error").empty();
+		$("#error").append("Error");
 	}
 }

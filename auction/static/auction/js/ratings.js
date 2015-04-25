@@ -1,6 +1,5 @@
 function rate(numStars, itemId)
 {
-    console.log('Inside javascript')
     var csrfToken = document.getElementsByTagName("input")[3].value;
 	//Send AJAX request to back end
 	$.ajax({
@@ -27,7 +26,7 @@ function rate(numStars, itemId)
                 {
                     $("#rating").append("<span class=\"glyphicon glyphicon-star-empty\"></span> ");
                 }
-        	   $("#rating").append(" " + newRating.toFixed(2) + " Stars");
+        	   $("#rating").append(" " + newRating.toFixed(2) + " stars");
             }
             else
             {
