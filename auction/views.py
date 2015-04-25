@@ -475,14 +475,10 @@ def finishPayment(request):
         paymentId = request.GET['paymentId']
         token = request.GET['token']
         payerId = request.GET['PayerID']
-        try:
-            payment = paypalrestsdk.Payment.find(paymentId)
-        except paypalrestsdk.exceptions.MissingConfig:
-            print('missing config')
-            return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
+        payment = paypalrestsdk.Payment.find(paymentId)
         payment.execute({"payer_id": payerId})
         #get rid of random nmber at end
-        batchid = itemid + str(random.randrange(1, 10000))
+        batchid = itemid + str(199)
         payout = Payout({
         "sender_batch_header": {
             "sender_batch_id": batchid,
@@ -510,10 +506,7 @@ def finishPayment(request):
             item.isSold = True
             item.save()
             removeItemFromRecentlyViewed(item)
-            try:
-                buyerProfile = UserProfil.objects.get(user=winner)
-            except:
-                return render(request, 'auction/error.html', {'error': 'Malicious HTTP request'})
+            buyerProfile = UserProfile.objects.get(user=winner)
             email_body = """You have sold %s by bid for $%s. Please send it to %s at \n %s \n %s, %s %s""" % (item.title, item.finalPrice, \
                 winner, buyerProfile.address, buyerProfile.city, buyerProfile.state, buyerProfile.zipcode)
             send_mail(subject='Your bid item has been sold', message= email_body, from_email='aukshopteam@gmail.com', recipient_list=[item.seller.email])
