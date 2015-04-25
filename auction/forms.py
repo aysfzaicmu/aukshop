@@ -37,6 +37,8 @@ class RegistrationForm(forms.Form):
 		username = cleaned_data.get('username')
 		password1 = cleaned_data.get('password1')
 		password2 = cleaned_data.get('password2')
+		if password1 is None or password2 is None:
+			raise forms.ValidationError('Enter passwords')
 		if password1 and password2 and password1 != password2:
 			raise forms.ValidationError('Passwords did not match.')
 		#The form validator already checks for the @ in the email
@@ -159,8 +161,8 @@ class AddingItemForm(forms.ModelForm):
 	def clean(self):
 		cleaned_data = super(AddingItemForm, self).clean()
 		title = cleaned_data.get('title')
-		if len(title) > 20:
-			raise forms.ValidationError('Title too long')
+		if not title or len(title) > 20:
+			raise forms.ValidationError('Invalid title')
 		description = cleaned_data.get('description')
 		if not description or len(description) > 600:
 			raise forms.ValidationError('Invalid Description')
@@ -259,7 +261,8 @@ class EditItemForm(forms.ModelForm):
 			'numStarRequests',
 			'bidPrice',
 			'endBidDate',
-			'sellingChoice'
+			'sellingChoice',
+			'picture_url'
 		)
 		labels = {
 			'endBidDate': 'End Bid Date',
@@ -269,8 +272,8 @@ class EditItemForm(forms.ModelForm):
 	def clean(self):
 		cleaned_data = super(EditItemForm, self).clean()
 		title = cleaned_data.get('title')
-		if len(title) > 20:
-			raise forms.ValidationError('Title too long')
+		if not title or len(title) > 20:
+			raise forms.ValidationError('Invalid title')
 		description = cleaned_data.get('description')
 		if not description or len(description) > 600:
 			raise forms.ValidationError('Invalid description')

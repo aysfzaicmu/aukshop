@@ -1,7 +1,11 @@
 {% extends 'auction/notLoggedInNavbar.html' %}
 
 {% block title %}About Aukshop{% endblock %}
-{% block css %}{% load static %}<link href="{% static 'auction/css/shop-homepage.css' %}" rel="stylesheet">{% endblock %}
+{% block css %}
+  {% load static %}
+  <link href="{% static 'auction/css/shop-homepage.css' %}" rel="stylesheet">
+  <link href="{% static 'auction/css/about.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content-high %}
 <body class="parallax"><!--Add this class if you have elements on the page with parallax backgrounds-->

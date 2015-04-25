@@ -1,4 +1,3 @@
-
 function commafy( num ) {
     var str = num.toString().split('.');
     if (str[0].length >= 5) {
